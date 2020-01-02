@@ -1,6 +1,34 @@
-# Install Automater
+# Pystall
 
 A system to automate configuration and setup of fresh Operating systems.
+
+
+
+## Quick-start
+
+
+
+### API
+
+
+
+Example installing exe files from website:
+
+```python
+from pystall.core import EXEAssets, Resource
+
+python_installer = Resource("python-install", "https://www.python.org/ftp/python/3.8.1/python-3.8.1.exe", None)
+
+rustup = Resource("rustup", "https://win.rustup.rs/", None)
+
+languages = EXEAssets("Languages", python_installer, rustup)
+ 
+python_install.get() # Download and run the .exe's
+```
+
+
+
+
 
 
 
@@ -66,6 +94,9 @@ Anything you don't know implementation details of yet.
 - subprocess
 - os
 - sys
+- docopt
+- tqdm
+- colored
 
 
 
