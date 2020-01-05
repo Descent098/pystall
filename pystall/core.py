@@ -44,19 +44,11 @@ build(python, go, logo)
 
 
 """
-
+Code maintenance
 TODO
 ----
-  * Update docstrings
-  * Add 'resource library' of common resources
-  * Be able to set wallpaper from static Resource
-  * Remove resource on exit option
-  * Add download progress bars
   * Logging
   * Error Catching
-  * Installers: .Deb
-  * Package managers: Custom PPA's, installs of regular packages
-  * Archive files: .zip, .tar.gz, etc.
 
 """
 
