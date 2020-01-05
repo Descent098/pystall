@@ -1,6 +1,6 @@
 
 
-<img src="./pystall-logo.png" style="zoom:10%;" />
+<img src="./pystall-logo.png" style="zoom:10%;">
 
 
 
