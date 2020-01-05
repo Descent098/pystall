@@ -1,3 +1,9 @@
+
+
+<img src="./pystall-logo.png" style="zoom:30%;" />
+
+
+
 # Pystall
 
 A system to automate configuration and setup of fresh Operating systems.
