@@ -4,15 +4,17 @@ Description:
 """
 import setuptools
 
-def get_content(filename):
+def get_content(*filename):
     """ Gets the content of a file and returns it as a string
     Args:
         filename(str): Name of file to pull content from
     Returns:
         str: Content from file
     """
-    with open(filename, "r") as full_description:
-        content = full_description.read()
+    content = ""
+    for file in filename:
+        with open(file, "r") as full_description:
+            content += full_description.read()
     return content
 
 setuptools.setup(
