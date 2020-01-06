@@ -16,12 +16,12 @@ def get_content(filename):
     return content
 
 setuptools.setup(
-    name="Pystall",
-    version="0.0.1",
+    name="pystall",
+    version="0.1.0",
     author="Kieran Wood",
     author_email="kieran@canadiancoding.ca",
     description="A system to automate configuration and setup of fresh Operating systems.",
-    long_description=get_content("README.md"),
+    long_description=get_content("README.md", "CHANGELOG.md"),
     long_description_content_type="text/markdown",
     url="https://github.com/Descent098/pystall",
     include_package_data=True,
@@ -34,6 +34,7 @@ setuptools.setup(
     "docopt",
     "tqdm",
     "colored",
+    "pyinstaller",
       ],
     classifiers=[
         "Programming Language :: Python :: 3",
