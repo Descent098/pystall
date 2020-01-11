@@ -83,7 +83,7 @@ if os.name == "nt": # Windows installers
 
     obs = EXEResource("OBS", "https://cdn-fastly.obsproject.com/downloads/OBS-Studio-24.0.3-Full-Installer-x64.exe")
 
-    rust = EXEResource("Rust", "https://win.rustup.rs/")
+    rust = EXEResource("Rust", "https://win.rustup.rs/") # TODO: Broken installer
 
     haskell = EXEResource("Haskell", "https://get.haskellstack.org/stable/windows-x86_64-installer.exe")
 

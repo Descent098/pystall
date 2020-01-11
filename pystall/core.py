@@ -218,7 +218,7 @@ class EXEResource(Resource):
         """Runs the .exe specified in self.location"""
         if self.downloaded:
             logging.info(f"Installing {self.label}")
-            installer = subprocess.Popen(self.location)
+            installer = subprocess.Popen(self.location, shell=True)
         else:
             logging.error(f"{self.label} failed to install due to not being downloaded")
 

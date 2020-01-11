@@ -18,27 +18,31 @@ def get_content(*filename):
     return content
 
 setuptools.setup(
-    name="pystall",
-    version="0.1.0",
-    author="Kieran Wood",
-    author_email="kieran@canadiancoding.ca",
-    description="A system to automate configuration and setup of fresh Operating systems.",
-    long_description=get_content("README.md", "CHANGELOG.md"),
-    long_description_content_type="text/markdown",
-    url="https://github.com/Descent098/pystall",
-    include_package_data=True,
-    packages=setuptools.find_packages(),
-    entry_points={
-          'console_scripts': ['pystall = pystall.cli:main']
-      },
-    install_requires=[
+    name = "pystall",
+    version = "0.2.0",
+    author = "Kieran Wood",
+    author_email = "kieran@canadiancoding.ca",
+    description = "A system to automate configuration and setup of fresh Operating systems.",
+    long_description = get_content("README.md", "CHANGELOG.md"),
+    long_description_content_type = "text/markdown",
+    url = "https://github.com/Descent098/pystall",
+    include_package_data = True,
+    packages = setuptools.find_packages(),
+    # entry_points = { # Waiting on implementation to uncomment
+    #       'console_scripts': ['pystall = pystall.cli:main']
+    #   },
+    install_requires = [
     "requests",
     "docopt",
     "tqdm",
     "colored",
     "pyinstaller",
       ],
-    classifiers=[
+    extras_require = {
+        "dev" : ["nox", "pytest"],
+
+    },
+    classifiers = [
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
