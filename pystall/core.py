@@ -157,12 +157,16 @@ class Resource(ABC):
             self.location = file_path
             return
 
-        logging.info("Starting binary download")
-        file_content = requests.get(self.location)
-        open(file_path, 'wb').write(file_content.content) # Save file
-        # TODO: Error catching
-        self.downloaded = True
-        self.location = file_path
+        if self.location.startswith("https://") or self.location.startswith("http://"): 
+            logging.info("Starting binary download")
+            file_content = requests.get(self.location)
+            open(file_path, 'wb').write(file_content.content) # Save file
+            # TODO: Error catching
+            self.downloaded = True
+            self.location = file_path
+        
+        else: # No need to download it since it's already downloaded
+            self.downloaded = True
 
     @abstractmethod
     def install(self) -> None:
@@ -402,6 +406,64 @@ class ZIPResource(Resource):
             logging.info(f"Removing installer {self.label}")
             os.remove(self.location)
 
+class DEBResource(Resource):
+    """Used to download and install .msi files.
+
+    Attributes
+    ----------
+
+    label : (str)
+        Human readable name for resource and used with extension in files name.
+    
+    location : (str)
+        The path or URL to the resource that needs to be downloaded & installed
+    
+    arguments : (list|bool)
+        Specify any arguments to be passed on installation, False indicates no arguments.
+    
+    downloaded : (bool)
+        Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
+
+    remove: (bool)
+        Whether to delete the .exe after installation, by default True.
+
+    Methods
+    -------
+    download:
+        Downloads Resource from location specified in self.location of the instance
+
+    install:
+        Runs the .msi deb with specified arguments.
+        NOTE: assumes you have already downloaded the file or set the self.location to correct file path.
+
+    Examples
+    --------
+    ```
+    from pystall.core import MSIResource, build
+
+    atom = DEBResource("Atom", "https://atom.io/download/deb")
+
+    build(atom) # Runs the download() and install() methods on the 'atom' instance
+    ```
+    """
+    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
+        super().__init__(label, ".deb", location, arguments, downloaded)
+        self.remove = remove
+
+    def install(self):
+        """Runs the .msi file with specified arguments."""
+        if self.downloaded:
+            logging.info(f"Installing {self.label}")
+            installer = subprocess.Popen(f"sudo apt install {self.location}", shell=True)
+        else:
+            logging.error(f"{self.name} failed to install due to not being downloaded")
+
+        while installer.poll() == None:
+            """loop runs until process has terminated"""
+
+        if self.remove:
+            logging.info(f"Removing installer {self.label}")
+            os.remove(self.location)
 
 def build(*resources):
     """downloads and installs everything specified"""
@@ -422,7 +484,9 @@ if __name__ == "__main__": # Used to test out functionality while developing
     
     wallpaper = StaticResource("Wallpaper", ".png", "https://images.unsplash.com/photo-1541599468348-e96984315921?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&h=500&q=60")
    
-    # build(micro)
+    atom = DEBResource("Atom", "https://atom.io/download/deb", remove=False)
+
+    build(atom)
 
     # Need to test this more
     # path = f"C:\\Users\\Kieran\\Downloads\\micro editor\\micro-1.4.1"

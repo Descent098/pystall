@@ -8,6 +8,7 @@ The focus for this release was Linux support, and implementing the current featu
 
 Features:
 
+- Added Support for local files and not just download links
 - .deb support
 - .tar.gz support (just extracting no binary installation stuff)
 - Installation of custom PPA based packages
