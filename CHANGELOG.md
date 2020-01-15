@@ -1,6 +1,33 @@
 # Changelog
 
-## V 0.0.1 January 5th 2020
+## V 0.2.0 TBD
+
+The focus for this release was debian linux support, and implementing the current feature sets in debian linux as much as possible.
+
+
+
+Features:
+
+- Added Support for local files and not just download links
+- .deb support
+- .tar.gz support (just extracting no binary installation stuff)
+- Installation of custom PPA based packages
+- Installation of apt packages
+- Porting all available resource library resources
+
+
+
+Development QOL:
+
+- Added nox for automation
+    - Distribution building
+    - Distribution releasing
+    - Running tests
+- Began implementing functionality and runtime compatibility tests with pytest
+
+
+
+## V 0.1.0 January 5th 2020
 
 Features:
 

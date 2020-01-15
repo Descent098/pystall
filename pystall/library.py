@@ -69,8 +69,20 @@ build(python, go, chrome)
 """
 
 import os
+import subprocess
 
-from .core import EXEResource, MSIResource, StaticResource, ZIPResource
+import distro
+
+from .core import *
+
+DEBIAN_BASED = ["ubuntu",
+                "zorin",
+                "lunixmint",
+                "parrot",
+                ]
+
+ARCH_BASED = ["manjaro"]
+
 
 if os.name == "nt": # Windows installers
     python = EXEResource("Python 3", "https://www.python.org/ftp/python/3.8.1/python-3.8.1.exe")
@@ -83,7 +95,7 @@ if os.name == "nt": # Windows installers
 
     obs = EXEResource("OBS", "https://cdn-fastly.obsproject.com/downloads/OBS-Studio-24.0.3-Full-Installer-x64.exe")
 
-    rust = EXEResource("Rust", "https://win.rustup.rs/")
+    rust = EXEResource("Rust", "https://win.rustup.rs/") 
 
     haskell = EXEResource("Haskell", "https://get.haskellstack.org/stable/windows-x86_64-installer.exe")
 
@@ -105,6 +117,42 @@ if os.name == "nt": # Windows installers
     
     micro = ZIPResource("micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-win64.zip")
 
+else: # Mac OS or linux
 
+    if distro.id() in DEBIAN_BASED:
+        # TODO: Define debian equivalent resources here
+        python = CUSTOMPPAResource("Python 3.8", "deadsnakes/ppa", ["python3.7", "python3.8"])
+        
+        go = CUSTOMPPAResource("Golang", "ppa:longsleep/golang-backports", ["golang-go"])
 
-    
+        vscode = DEBResource("Visual Studio Code", "https://go.microsoft.com/fwlink/?LinkID=760868")
+
+        git = APTResource("Git", "git")
+
+        obs = CUSTOMPPAResource("Open Broadcast System", "obsproject/obs-studio", "obs-studio")
+
+        # TODO: rust = ... Downloaded using "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+
+        haskell = APTResource("Haskell", "haskell-platform")
+        # No single installer
+        # typora = subprocess.Popen("wget -qO - https://typora.io/linux/public-key.asc | sudo apt-key add - && sudo add-apt-repository 'deb https://typora.io/linux ./' && sudo apt-get update && sudo apt-get install typora", shell = True)
+
+        steam = APTResource("Steam", "steam")
+
+        chrome = DEBResource("Chrome", "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb")
+        
+        firefox = DEBResource("FireFox", "http://http.us.debian.org/debian/pool/main/f/firefox/firefox_72.0.1-1_i386.deb") 
+
+        # No single installer
+        # brave = subprocess.Popen("sudo apt install apt-transport-https curl && curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add - && echo 'deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main' | sudo tee /etc/apt/sources.list.d/brave-browser-release.list && sudo apt update && sudo apt install brave-browser", shell = True)
+
+        opera = DEBResource("Opera", "https://download1.operacdn.com/pub/opera/desktop/66.0.3515.27/linux/opera-stable_66.0.3515.27_amd64.deb") 
+
+        micro = TARBALLResource("Micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-linux64.tar.gz")
+
+    if distro.id() in ARCH_BASED:
+        """TODO: Define arch equivalent resources here"""
+
+    if "fedora" in distro.id():
+        """TODO: Define arch equivalent resources here"""
+
