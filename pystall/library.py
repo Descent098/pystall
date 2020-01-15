@@ -70,7 +70,18 @@ build(python, go, chrome)
 
 import os
 
-from .core import EXEResource, MSIResource, StaticResource, ZIPResource
+import distro
+
+from .core import *
+
+DEBIAN_BASED = ["ubuntu",
+                "zorin",
+                "lunixmint",
+                "parrot",
+                ]
+
+ARCH_BASED = ["manjaro"]
+
 
 if os.name == "nt": # Windows installers
     python = EXEResource("Python 3", "https://www.python.org/ftp/python/3.8.1/python-3.8.1.exe")
@@ -105,6 +116,14 @@ if os.name == "nt": # Windows installers
     
     micro = ZIPResource("micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-win64.zip")
 
+else: # Mac OS or linux
 
+    if distro.id() in DEBIAN_BASED:
+        # TODO: Define debian equivalent resources here
 
-    
+    if distro.id() in ARCH_BASED:
+        #TODO: Define arch equivalent resources here
+
+    if "fedora" in distro.id():
+        #TODO: Define fedora equivalent resources here
+

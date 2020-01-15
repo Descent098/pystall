@@ -37,6 +37,7 @@ setuptools.setup(
     "tqdm",
     "colored",
     "pyinstaller",
+    "distro",
       ],
     extras_require = {
         "dev" : ["nox", "pytest"],
