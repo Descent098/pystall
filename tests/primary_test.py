@@ -4,6 +4,9 @@ def test_library():
 def test_executables():
     """Validates that the varying forms of executables work"""
 
+def test_packages():
+    """Validates that packages installed via package manager work"""
+
 def test_archives():
     """Validates that the varying forms of archive extraction work"""
 
