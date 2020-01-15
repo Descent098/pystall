@@ -2,7 +2,7 @@
 
 
 
-A system to automate configuration and setup of fresh Operating systems.
+A system to automate installation and configuration of resources.
 
 
 
@@ -20,9 +20,9 @@ You can install the project from PyPi using ```pip install pystall``` or ```pip3
 
 #### From Source
 
-clone this source repo using either the github button or ```git clone https://github.com/Descent098/pystall```.
+clone this source repo using either the github button or ```git clone https://github.com/Descent098/pystall```
 
-Then in the root directory (the one with setup.py) run ```pip install .``` or ```sudo pip3 install .```. This will install the package and it's dependencies.
+Then in the root directory (the one with setup.py) run ```pip install .``` or ```sudo pip3 install .``` This will install the package and it's dependencies.
 
 
 
@@ -76,7 +76,7 @@ build(python, go, chrome, micro)
 
 #### Additional Docs
 
-For a full list of available library resources & how to extend the framework for specific functionality check the wiki: https://github.com/Descent098/pystall/wiki
+For a full list of available library resources, how to extend the framework for specific functionality, and a development guide if you would like to contribute,  check the wiki: https://github.com/Descent098/pystall/wiki
 
 
 
@@ -104,13 +104,41 @@ For a full list of available library resources & how to extend the framework for
 
 For more detailed roadmap check out the project planning board on github: https://github.com/Descent098/pystall/projects/1
 
+
+
+## Assumptions
+
+- You are running Windows, Linux (currently debian-based, with arch support in future), or Mac OS (on the way)
+- Your machine is x86 64-bit based (no I won't be adding 32-bit support, but arm support is coming)
+- You have an internet connection (if downloading resources and not using local copies of installers)
+
+
+
+## What is Pystall?
+
+**Pystall is:**
+
+- A system to write single scripts to setup environments across platforms
+- A relatively boilerplate-free method of writing system configurations
+- A way to create easy to distribute binaries to handle complicated installations.
+- Meant for end-users looking for a simple syntax to create scripts
+
+
+
+**Pystall is not:**
+
+- A server management utility
+- An infrastructure management utility
+- An orchestration replacement (ansible, jenkins, puppet, chef etc.)
+- Meant for consistent (in terms of frequency) updating to existing packages (though i'm not opposed to this in the future necessarily)
+- An **ABSOLUTELY** automated system, due to the amount of tradeoffs of extensibility I have opted to leave installers to be configured as they run (i.e. running the python installer exe still requires you to do the configuration).
+
+
+
 ### Unknowns
 
 Anything you don't know implementation details of yet.
 
 1. Not sure how to implement .dmg installation.
 2. Don't know how to support unconventional installations. (Maybe out of scope)
-3. don't necessarily know how to support varying linux installations. Particularly how to check what linux is installed.
-
-
-If you are interested I livestreamed the development of pystall and there is also a playlist of the development: https://www.youtube.com/watch?v=l3hBPfEtbko&list=PLY1W45yrIxjTF-5EqKSfZ1jKeb1YZo5ve
+3. ~don't necessarily know how to support varying linux installations. Particularly how to check what linux is installed.~
