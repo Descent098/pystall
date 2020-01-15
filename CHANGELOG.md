@@ -12,6 +12,7 @@ Features:
 - .deb support
 - .tar.gz support (just extracting no binary installation stuff)
 - Installation of custom PPA based packages
+- Installation of apt packages
 - Porting all available resource library resources
 
 

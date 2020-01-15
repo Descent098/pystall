@@ -563,15 +563,15 @@ class TARBALLResource(Resource):
         Downloads Resource from location specified in self.location of the instance
 
     install:
-        Extracts the .zip file.
+        Extracts the .tar.gz file.
         NOTE: assumes you have already downloaded the file or set the self.location to correct file path.
 
     Examples
     --------
     ```
-    from pystall.core import ZIPResource, build
+    from pystall.core import TARBALLResource, build
 
-    micro = ZIPResource("micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-win64.zip")
+    micro = TARBALLResource("Micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-linux64.tar.gz", remove=False)
 
     build(micro)
     ```
@@ -600,6 +600,70 @@ class TARBALLResource(Resource):
             logging.info(f"Removing installer {self.label}")
             os.remove(self.location)
 
+class APTResource:
+    """
+
+    Attributes
+    ----------
+
+    label : (str)
+        Human readable name for resource
+    
+    packages : (list|str)
+        Specify either a list of packages to install, or a string with a package name.
+
+    Methods
+    -------
+    download:
+        Adds specified PPA and apt-get updates
+
+    install:
+        Installs specified packages after the PPA had been added.
+
+    Examples
+    --------
+    ```
+    from pystall.core import APTResource, build
+
+    ...
+
+    build(python_linux)
+
+    ```
+
+    """
+    def __init__(self, label, packages):
+        self.label = label
+        self.packages = packages
+        self.downloaded = False
+        
+    def download(self):
+        """Updates apt packages using 'sudo apt-get update' """
+
+        logging.info("Updating apt repositories")
+        installer = subprocess.Popen("sudo apt-get update", shell=True)
+
+        while installer.poll() == None:
+            """loop runs until process has terminated"""
+
+    def install(self):
+        """Installs specified packages"""
+        logging.info(f"Installing {self.label}")
+
+        if type(self.packages) == str:
+            logging.info(f"Installing{self.packages}")
+            installer = subprocess.Popen(f"sudo apt install {self.packages}", shell=True)
+
+            while installer.poll() == None:
+                """loop runs until process has terminated"""
+
+        elif (type(self.packages) == list) or (type(self.packages) == tuple):
+            for package in self.packages:
+                logging.info(f"Installing {package}")
+                installer = subprocess.Popen(f"sudo apt install {package}", shell=True)
+
+                while installer.poll() == None:
+                    """loop runs until process has terminated"""
 
 def build(*resources):
     """downloads and installs everything specified"""
@@ -626,7 +690,9 @@ if __name__ == "__main__": # Used to test out functionality while developing
 
     micro_linux = TARBALLResource("Micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-linux64.tar.gz", remove=False)
 
-    build(micro_linux)
+    nano = APTResource("Nano Editor", "nano")
+
+    build(nano)
 
     # Need to test this more
     # path = f"C:\\Users\\Kieran\\Downloads\\micro editor\\micro-1.4.1"
