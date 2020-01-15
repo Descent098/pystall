@@ -2,7 +2,7 @@
 
 ## V 0.2.0 TBD
 
-The focus for this release was Linux support, and implementing the current feature sets in Linux as much as possible.
+The focus for this release was debian linux support, and implementing the current feature sets in debian linux as much as possible.
 
 
 
@@ -12,7 +12,6 @@ Features:
 - .deb support
 - .tar.gz support (just extracting no binary installation stuff)
 - Installation of custom PPA based packages
-- Shell script installers (add to path coming later)
 - Porting all available resource library resources
 
 
