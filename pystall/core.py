@@ -254,7 +254,7 @@ class MSIResource(Resource):
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
 
     remove: (bool)
-        Whether to delete the .exe after installation, by default True.
+        Whether to delete the .msi after installation, by default True.
 
     Methods
     -------
@@ -408,7 +408,7 @@ class ZIPResource(Resource):
             os.remove(self.location)
 
 class DEBResource(Resource):
-    """Used to download and install .msi files.
+    """Used to download and install .deb files.
 
     Attributes
     ----------
@@ -426,7 +426,7 @@ class DEBResource(Resource):
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
 
     remove: (bool)
-        Whether to delete the .exe after installation, by default True.
+        Whether to delete the .deb after installation, by default True.
 
     Methods
     -------
@@ -434,7 +434,7 @@ class DEBResource(Resource):
         Downloads Resource from location specified in self.location of the instance
 
     install:
-        Runs the .msi deb with specified arguments.
+        Runs the .deb with specified arguments.
         NOTE: assumes you have already downloaded the file or set the self.location to correct file path.
 
     Examples
@@ -468,7 +468,7 @@ class DEBResource(Resource):
 
 
 class CUSTOMPPAResource:
-    """
+    """Used to download files that are from a third part PPA
 
     Attributes
     ----------
@@ -495,7 +495,7 @@ class CUSTOMPPAResource:
     ```
     from pystall.core import CUSTOMPPAResource, build
 
-    python_linux = CUSTOMPPAResource("Python 3.8", "deadsnakes/ppa", ["python3.7", "python3.8"])
+    python_linux = CUSTOMPPAResource("Python 3", "deadsnakes/ppa", ["python3.7", "python3.8"])
 
     build(python_linux)
 
@@ -571,7 +571,7 @@ class TARBALLResource(Resource):
     ```
     from pystall.core import TARBALLResource, build
 
-    micro = TARBALLResource("Micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-linux64.tar.gz", remove=False)
+    micro = TARBALLResource("Micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-linux64.tar.gz")
 
     build(micro)
     ```
@@ -601,7 +601,7 @@ class TARBALLResource(Resource):
             os.remove(self.location)
 
 class APTResource:
-    """
+    """Installs resources that are part of an exsiting APT repository
 
     Attributes
     ----------
@@ -625,9 +625,9 @@ class APTResource:
     ```
     from pystall.core import APTResource, build
 
-    ...
+    nano = APTResource("Nano Editor", "nano")
 
-    build(python_linux)
+    build(nano)
 
     ```
 
@@ -692,7 +692,7 @@ if __name__ == "__main__": # Used to test out functionality while developing
 
     nano = APTResource("Nano Editor", "nano")
 
-    build(nano)
+    build()
 
     # Need to test this more
     # path = f"C:\\Users\\Kieran\\Downloads\\micro editor\\micro-1.4.1"

@@ -4,9 +4,11 @@ def confirm(message, validators = ["y", "yes"]):
     valid_input = False
 
     while not valid_input:
-        response = input(message + "(")
-        if validators in response:
+        response = input(message + str(validators).replace(","," or").replace("[","(").replace("]",")").replace("'",""))
+        if response in validators:
             valid_input = True
+        else:
+            raise ValueError(f"Failed to confirm; {message}")
 
 @nox.session
 def build(session):
