@@ -12,9 +12,9 @@ theme: readthedocs
 
 repo_url: https://github.com/Descent098/pystall
 
-docs_dir: /docs
+docs_dir: "docs"
 
-site_dir: /site
+site_dir: "site"
 
 site_description: This is the documentation site for pystall, an easy to use python package to simplify and automate resource installation and configuration.
 
