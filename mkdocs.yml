@@ -1,0 +1,21 @@
+site_name: Pystall
+
+nav:
+    - Home: index.md
+    - Quick Start: quick-start.md
+    - Custom Subclasses: custom-subclasses.md
+    - Resource Library List: resource-library-list.md
+    - Creating Binary Distributions: creating-binary-distributions.md
+    - Contribution Guide: contribution-guide.md
+
+theme: readthedocs
+
+repo_url: https://github.com/Descent098/pystall
+
+docs_dir: docs
+
+site_dir: site
+
+site_description: This is the documentation site for pystall, an easy to use python package to simplify and automate resource installation and configuration.
+
+site_author: Kieran Wood - Descent098
