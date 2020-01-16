@@ -135,10 +135,3 @@ For more detailed roadmap check out the project planning board on github: https:
 
 
 
-### Unknowns
-
-Anything you don't know implementation details of yet.
-
-1. Not sure how to implement .dmg installation.
-2. Don't know how to support unconventional installations. (Maybe out of scope)
-3. ~don't necessarily know how to support varying linux installations. Particularly how to check what linux is installed.~
