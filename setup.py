@@ -40,7 +40,7 @@ setuptools.setup(
     "distro",
       ],
     extras_require = {
-        "dev" : ["nox", "pytest"],
+        "dev" : ["nox", "pytest", "mkdocs"],
 
     },
     classifiers = [

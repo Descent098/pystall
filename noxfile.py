@@ -12,12 +12,21 @@ def confirm(message, validators = ["y", "yes"]):
 
 @nox.session
 def build(session):
+    # Confirm all the essential release stuff has been done
     confirm("Have you run the tests?")
     confirm("Have you updated inline docs?")
     confirm("Have you updated the wiki docs?")
     confirm("Have you created the release page?")
     confirm("Have you updated the readme docs?")
+
+    # Create source distribution
     session.run("python", "setup.py", "sdist")
+
+    # Build Documentation
+    session.install("mkdocs")
+    session.run("mkdocs", "build")
+
+    # Create wheelfile
     session.install("wheel")
     session.run("python", "setup.py", "bdist_wheel", "--universal")
 
@@ -30,3 +39,9 @@ def release(session):
 def test(session):
     session.install('pytest')
     session.run('pytest')
+
+@nox.session
+def docs(session):
+    # Serve documentation to verify it's how you want
+    session.install("mkdocs")
+    session.run("mkdocs", "serve")
