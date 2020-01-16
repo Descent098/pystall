@@ -1,10 +1,8 @@
 # Changelog
 
-## V 0.2.0 TBD
+## V 0.2.0 January 15th 2020
 
 The focus for this release was debian linux support, and implementing the current feature sets in debian linux as much as possible.
-
-
 
 Features:
 
@@ -14,8 +12,6 @@ Features:
 - Installation of custom PPA based packages
 - Installation of apt packages
 - Porting all available resource library resources
-
-
 
 Development QOL:
 
