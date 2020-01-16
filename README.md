@@ -76,31 +76,11 @@ build(python, go, chrome, micro)
 
 #### Additional Docs
 
-For a full list of available library resources, how to extend the framework for specific functionality, and a development guide if you would like to contribute,  check the wiki: https://github.com/Descent098/pystall/wiki
+For a full list of available library resources, how to extend the framework for specific functionality, and a development guide if you would like to contribute,  check the docs: https://pystall.readthedocs.io/en/latest/
 
 
 
 ## Roadmap
-
-
-1. ~Class that's inherited to setup dependencies~
-2. Main python module that can be installed with pip through pypi
-    1. ~Can be used in a python script.~
-    2. Can be used as a CLI. 
-    3. ~Use pyinstaller to run as a direct binary.~
-3. A way of supporting many filetypes (images, video files, installers etc.)
-    1. ~Grab the files~
-    2. ~Put them in a particular path if necessary~
-    3. Run installers if necessary (make sure there is a flag not to run the binary, and that arguments can be passed)
-4. MacOS Support (needs to be validated)
-5. A CLI interface
-    1. Pass files with a JSON schema for installing dependencies.
-6. Configuration of installations
-    1. Handling PATH variables
-    2. Handle running installers as admin.
-7. Asynchronously download files. (technically already possible with popen but a better solution can be found)
-
-
 
 For more detailed roadmap check out the project planning board on github: https://github.com/Descent098/pystall/projects/1
 
@@ -132,6 +112,3 @@ For more detailed roadmap check out the project planning board on github: https:
 - An orchestration replacement (ansible, jenkins, puppet, chef etc.)
 - Meant for consistent (in terms of frequency) updating to existing packages (though i'm not opposed to this in the future necessarily)
 - An **ABSOLUTELY** automated system, due to the amount of tradeoffs of extensibility I have opted to leave installers to be configured as they run (i.e. running the python installer exe still requires you to do the configuration).
-
-
-
