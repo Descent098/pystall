@@ -1,5 +1,20 @@
 # Changelog
 
+## V 0.3.0 TBA
+
+Focus for this release was organization and finer details.
+
+Features:
+- .rpm support
+- Notification to let people know that they have to agree to the TOS of each piece of software
+- Ability to specify resources as dependencies
+- Generic command wrapper
+- Resource file format
+
+Development QOL:
+- Added user docs to the repo under /docs
+- ReadTheDocs Site
+
 ## V 0.2.0 January 15th 2020
 
 The focus for this release was debian linux support, and implementing the current feature sets in debian linux as much as possible.
