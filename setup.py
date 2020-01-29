@@ -19,13 +19,18 @@ def get_content(*filename):
 
 setuptools.setup(
     name = "pystall",
-    version = "0.2.0",
+    version = "0.2.1",
     author = "Kieran Wood",
     author_email = "kieran@canadiancoding.ca",
     description = "A system to automate configuration and setup of fresh Operating systems.",
     long_description = get_content("README.md", "CHANGELOG.md"),
     long_description_content_type = "text/markdown",
-    url = "https://github.com/Descent098/pystall",
+    project_urls={  # Optional
+        'Docs': 'http://pystall.readthedocs.io/',
+        'Bug Reports': 'https://github.com/Descent098/pystall',
+        'Source': 'https://github.com/Descent098/pystall',
+        'Roadmap': 'https://github.com/Descent098/pystall/projects/1',
+    },
     include_package_data = True,
     packages = setuptools.find_packages(),
     # entry_points = { # Waiting on implementation to uncomment
