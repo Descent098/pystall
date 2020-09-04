@@ -65,7 +65,6 @@ from abc import ABC, abstractmethod # Used to enforce subclassing from base Reso
 import requests                     # Used to download files from the web
 from tqdm import tqdm               # Used to create installation/download progress bars
 
-
 # Setting up default downloads folder based on OS
 if os.name == "nt":
     DESKTOP = f"{os.getenv('USERPROFILE')}\Desktop"
@@ -176,10 +175,25 @@ class Resource(ABC):
             self.location = file_path
             return
 
-        if self.location.startswith("https://") or self.location.startswith("http://"): 
+        if self.location.startswith("https://") or self.location.startswith("http://"): # If URL is provided start download
             logging.info("Starting binary download")
-            file_content = requests.get(self.location)
-            open(file_path, 'wb').write(file_content.content) # Save file
+
+            # Setting up necessary download variables
+            file_stream = requests.get(self.location, stream=True) # The open http request for the file
+            chunk_size = 1024 # Setting the progress bar chunk size to measure in kb
+            total_length = int(file_stream.headers.get('content-length')) # Getting file size
+
+            # Setting up the download progress bar
+            progress_bar = tqdm(total=total_length, unit='iB', unit_scale=True)
+            progress_bar.set_description(f"Download progress for {self.label}:")
+
+            # Write the incoming data stream to a file and update progress bar as it downloads
+            with open(file_path, 'wb') as download_file: 
+                for chunk in file_stream.iter_content(chunk_size): 
+                    if chunk:
+                        progress_bar.update(len(chunk))
+                        download_file.write(chunk)
+            progress_bar.close()
             # TODO: Error catching
             self.downloaded = True
             self.location = file_path
