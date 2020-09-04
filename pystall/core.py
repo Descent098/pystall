@@ -71,10 +71,11 @@ if os.name == "nt":
     DESKTOP = f"{os.getenv('USERPROFILE')}\Desktop"
     DOWNLOAD_FOLDER = f"{os.getenv('USERPROFILE')}\Downloads"
 else: # PORT: Assuming variable is there for MacOS and Linux installs
-    DESKTOP = f"{os.getenv('HOMER')}/Desktop" #TODO: Verify this is the right directory
+    DESKTOP = f"{os.getenv('HOME')}/Desktop" #TODO: Verify this is the right directory
     DOWNLOAD_FOLDER = f"{os.getenv('HOME')}/Downloads" #TODO: Verify this is the right directory
 
 def show_logs():
+    """When called sets up a logger to display script logs"""
     import sys
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -91,13 +92,13 @@ class Resource(ABC):
 
     extensions : (str)
         The extension of the filetype being downloaded
-    
+
     location : (str)
         The path or URL to the resource that needs to be downloaded & installed
-    
+
     arguments : (list|bool)
         Specify any arguments to be passed on installation, False indicates no arguments.
-    
+
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
 
@@ -122,8 +123,25 @@ class Resource(ABC):
             pass
     ```
     """
+    # Software liscence agreement that runs on import
+    agreement = False
+
     def __init__(self, label, extension, location, arguments = False, downloaded = False):
-        
+        while not Resource.agreement:
+            response = input("By using pystall you are also agreeing that:\n\t1. There is no responsibility or accountability on the part of the creator for how this library is used \n\t2. You agree to any and all required software liscences for the software you install using pystall\n\nIf you agree type y and hit enter, if you disagree type n and hit enter to exit: ").lower().strip()
+
+            if response == "y":
+                Resource.agreement = True
+            elif response == "n":
+                exit()
+            else:
+                # Clear the terminal and re-ask
+                if os.name=='nt': # PORT: Windows
+                    os.system('cls')
+                else: # PORT: *nix
+                    os.system('clear')
+                continue
+
         self.label = label
         self.extension = extension
         self.location = location
@@ -139,7 +157,7 @@ class Resource(ABC):
             The path to where the resource should download to. 
             Leave as false for download folder + name + extension.
             NOTE: Custom paths MUST include extension.
-        
+
         Examples
         --------
         ```
@@ -229,7 +247,7 @@ class EXEResource(Resource):
 
         while installer.poll() == None:
             """loop runs until process has terminated"""
-        
+
         if self.remove:
             logging.info(f"Removing installer {self.label}")
             os.remove(self.location)
@@ -415,13 +433,13 @@ class DEBResource(Resource):
 
     label : (str)
         Human readable name for resource and used with extension in files name.
-    
+
     location : (str)
         The path or URL to the resource that needs to be downloaded & installed
     
     arguments : (list|bool)
         Specify any arguments to be passed on installation, False indicates no arguments.
-    
+
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
 
@@ -544,13 +562,13 @@ class TARBALLResource(Resource):
 
     label : (str)
         Human readable name for resource and used with extension in files name.
-    
+
     location : (str)
         The path or URL to the resource that needs to be downloaded & installed
-    
+
     arguments : (list|bool)
         Specify any arguments to be passed on installation, False indicates no arguments.
-    
+
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
 
@@ -592,7 +610,7 @@ class TARBALLResource(Resource):
         if self.downloaded:
             logging.info(f"Installing {self.label}")
             self.extract()
-            
+
         else:
             logging.error(f"{self.name} failed to install due to not being downloaded")
 
@@ -636,7 +654,7 @@ class APTResource:
         self.label = label
         self.packages = packages
         self.downloaded = False
-        
+
     def download(self):
         """Updates apt packages using 'sudo apt-get update' """
 
@@ -675,15 +693,15 @@ def build(*resources):
 
 if __name__ == "__main__": # Used to test out functionality while developing
     show_logs()
-    
+
     micro = ZIPResource("micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-win64.zip")
-    
+
     python = EXEResource("python-installer", "https://www.python.org/ftp/python/3.8.1/python-3.8.1.exe")
-    
+
     go = MSIResource("Golang", "https://dl.google.com/go/go1.13.5.windows-amd64.msi")
-    
+
     wallpaper = StaticResource("Wallpaper", ".png", "https://images.unsplash.com/photo-1541599468348-e96984315921?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&h=500&q=60")
-   
+
     atom = DEBResource("Atom", "https://atom.io/download/deb", remove=False)
 
     python_linux = CUSTOMPPAResource("Python 3.8", "deadsnakes/ppa", ["python3.7", "python3.8"])
