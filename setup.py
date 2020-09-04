@@ -1,15 +1,20 @@
-"""
-Description:
-    Contains all the configuration for the package on pip
-"""
+"""Contains all the configuration for the package on pip"""
 import setuptools
 
-def get_content(*filename):
-    """ Gets the content of a file and returns it as a string
-    Args:
-        filename(str): Name of file to pull content from
-    Returns:
-        str: Content from file
+def get_content(*filename:str) -> str:
+    """ Gets the content of a file or files and returns
+    it/them as a string
+
+    Parameters
+    ----------
+    filename : (str)
+        Name of file or set of files to pull content from 
+        (comma delimited)
+    
+    Returns
+    -------
+    str:
+        Content from the file or files
     """
     content = ""
     for file in filename:
@@ -25,7 +30,7 @@ setuptools.setup(
     description = "A system to automate configuration and setup of fresh Operating systems.",
     long_description = get_content("README.md", "CHANGELOG.md"),
     long_description_content_type = "text/markdown",
-    project_urls={  # Optional
+    project_urls={
         'Docs': 'http://pystall.readthedocs.io/',
         'Bug Reports': 'https://github.com/Descent098/pystall',
         'Source': 'https://github.com/Descent098/pystall',
@@ -43,10 +48,13 @@ setuptools.setup(
     "colored",
     "pyinstaller",
     "distro",
-      ],
+        ],
     extras_require = {
-        "dev" : ["nox", "pytest", "mkdocs"],
-
+        "dev" : [
+            "nox", 
+            "pytest", 
+            "mkdocs"
+            ],
     },
     classifiers = [
         "Programming Language :: Python :: 3",
