@@ -5,6 +5,17 @@ This module contains core functionality of Pystall including:
     - The included basic Resource subclasses
     - The build() method
 
+Module Variables
+----------------
+DESKTOP : (str)
+    This is the path to the current user desktop folder, it is OS independant
+
+DOWNLOAD_FOLDER : (str)
+    This is the path to the current user downloads folder, it is OS independant
+
+agreement_text : (str)
+    The agreement users must make on each run to use pystall
+
 Classes
 -------
 Resource: 
@@ -73,7 +84,14 @@ else: # PORT: Assuming variable is there for MacOS and Linux installs
     DESKTOP = f"{os.getenv('HOME')}/Desktop" #TODO: Verify this is the right directory
     DOWNLOAD_FOLDER = f"{os.getenv('HOME')}/Downloads" #TODO: Verify this is the right directory
 
-def show_logs():
+# The agreement users must make on each run to use pystall
+agreement_text = """By using pystall you are also agreeing that:
+    1. There is no responsibility or accountability on the part of the creator for how this library is used 
+    2. You agree to any and all required software liscences for the software you install using pystall
+
+If you agree type y and hit enter, if you disagree type n and hit enter to exit: """
+
+def show_logs() -> None:
     """When called sets up a logger to display script logs"""
     import sys
     logger = logging.getLogger()
@@ -85,6 +103,9 @@ class Resource(ABC):
 
     Attributes
     ----------
+
+    agreement : (bool)
+        A class variable to confirm that users
 
     label : (str)
         Human readable name for resource and used with extension in files name.
@@ -100,6 +121,9 @@ class Resource(ABC):
 
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
+
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
 
     Methods
     -------
@@ -125,21 +149,22 @@ class Resource(ABC):
     # Software liscence agreement that runs on import
     agreement = False
 
-    def __init__(self, label, extension, location, arguments = False, downloaded = False):
-        while not Resource.agreement:
-            response = input("By using pystall you are also agreeing that:\n\t1. There is no responsibility or accountability on the part of the creator for how this library is used \n\t2. You agree to any and all required software liscences for the software you install using pystall\n\nIf you agree type y and hit enter, if you disagree type n and hit enter to exit: ").lower().strip()
+    def __init__(self, label:str, extension:str, location:str, arguments:list = False, downloaded:bool = False, overwrite_agreement:bool = False):
+        if not overwrite_agreement: 
+            while not Resource.agreement: # Continuously ask user to agree to software terms, this only runs once per script as this is a class variable
+                response = input(agreement_text).lower().strip()
 
-            if response == "y":
-                Resource.agreement = True
-            elif response == "n":
-                exit()
-            else:
-                # Clear the terminal and re-ask
-                if os.name=='nt': # PORT: Windows
-                    os.system('cls')
-                else: # PORT: *nix
-                    os.system('clear')
-                continue
+                if response == "y":
+                    Resource.agreement = True
+                elif response == "n": # If someone does not agree to liscence then terminate script
+                    exit()
+                else:
+                    # Clear the terminal and re-ask
+                    if os.name=='nt': # PORT: Windows
+                        os.system('cls')
+                    else: # PORT: *nix
+                        os.system('clear')
+                    continue
 
         self.label = label
         self.extension = extension
@@ -147,7 +172,7 @@ class Resource(ABC):
         self.arguments = arguments
         self.downloaded = downloaded
 
-    def download(self, file_path = False):
+    def download(self, file_path:str = False):
         """Downloads Resource from location specified in self.location of the instance.
 
         Attributes
@@ -228,6 +253,9 @@ class EXEResource(Resource):
     remove: (bool)
         Whether to delete the .exe after installation, by default True.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
     Methods
     -------
     download:
@@ -247,8 +275,8 @@ class EXEResource(Resource):
     build(python) # Runs the download() and install() methods on the 'python' instance
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".exe", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments:list = False, downloaded:bool = False, remove:bool = True, overwrite_agreement:bool = False):
+        super().__init__(label, ".exe", location, arguments, downloaded, overwrite_agreement)
         self.remove = remove
 
     def install(self):
@@ -288,6 +316,9 @@ class MSIResource(Resource):
     remove: (bool)
         Whether to delete the .msi after installation, by default True.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
     Methods
     -------
     download:
@@ -307,8 +338,8 @@ class MSIResource(Resource):
     build(go) # Runs the download() and install() methods on the 'go' instance
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".msi", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments:list = False, downloaded:bool = False, remove:bool = True, overwrite_agreement:bool = False):
+        super().__init__(label, ".msi", location, arguments, downloaded, overwrite_agreement)
         self.remove = remove
 
     def install(self):
@@ -348,6 +379,9 @@ class StaticResource(Resource):
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
     Methods
     -------
     download:
@@ -368,8 +402,8 @@ class StaticResource(Resource):
     build(wallpaper) # Another option to download the Resource
     ```
     """
-    def __init__(self, label, extension, location, arguments = False, downloaded = False):
-        super().__init__(label, extension, location, arguments, downloaded)
+    def __init__(self, label:str, extension:str, location:str, arguments:list = False, downloaded:bool = False, overwrite_agreement:bool = False):
+        super().__init__(label, extension, location, arguments, downloaded, overwrite_agreement)
 
     def install(self):
         """Does nothing since there are no installation/configuration steps for static files"""
@@ -396,6 +430,9 @@ class ZIPResource(Resource):
     remove: (bool)
         Whether to delete the .zip after installation, by default True.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
     Methods
     -------
     download:
@@ -415,8 +452,8 @@ class ZIPResource(Resource):
     build(micro)
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".zip", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments:list = False, downloaded:bool = False, remove:bool = True, overwrite_agreement:bool = False):
+        super().__init__(label, ".zip", location, arguments, downloaded, overwrite_agreement)
         self.remove = remove
 
     def extract(self):
@@ -460,6 +497,9 @@ class DEBResource(Resource):
     remove: (bool)
         Whether to delete the .deb after installation, by default True.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
     Methods
     -------
     download:
@@ -479,8 +519,8 @@ class DEBResource(Resource):
     build(atom) # Runs the download() and install() methods on the 'atom' instance
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".deb", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments:list = False, downloaded:bool = False, remove:bool = True, overwrite_agreement:bool = False):
+        super().__init__(label, ".deb", location, arguments, downloaded, overwrite_agreement)
         self.remove = remove
 
     def install(self):
@@ -514,6 +554,9 @@ class CUSTOMPPAResource:
     packages : (list|str)
         Specify either a list of packages to install, or a string with a package name.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
     Methods
     -------
     download:
@@ -534,7 +577,22 @@ class CUSTOMPPAResource:
     ```
 
     """
-    def __init__(self, label, PPA, packages):
+    def __init__(self, label:str, PPA:str, packages:list, overwrite_agreement:bool = False):
+        if not overwrite_agreement: 
+            while not Resource.agreement: # Continuously ask user to agree to software terms, this only runs once per script as this is a class variable
+                response = input(agreement_text).lower().strip()
+
+                if response == "y":
+                    Resource.agreement = True
+                elif response == "n": # If someone does not agree to liscence then terminate script
+                    exit()
+                else:
+                    # Clear the terminal and re-ask
+                    if os.name=='nt': # PORT: Windows
+                        os.system('cls')
+                    else: # PORT: *nix
+                        os.system('clear')
+                    continue
         self.label = label
         self.PPA = PPA
         self.packages = packages
@@ -589,6 +647,9 @@ class TARBALLResource(Resource):
     remove: (bool)
         Whether to delete the .zip after installation, by default True.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
     Methods
     -------
     download:
@@ -608,8 +669,8 @@ class TARBALLResource(Resource):
     build(micro)
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".tar.gz", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments = False, downloaded = False, remove = True, overwrite_agreement:bool = False):
+        super().__init__(label, ".tar.gz", location, arguments, downloaded, overwrite_agreement)
         self.remove = remove
 
     def extract(self):
@@ -644,6 +705,9 @@ class APTResource:
     packages : (list|str)
         Specify either a list of packages to install, or a string with a package name.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
     Methods
     -------
     download:
@@ -664,7 +728,22 @@ class APTResource:
     ```
 
     """
-    def __init__(self, label, packages):
+    def __init__(self, label:str, packages:list, overwrite_agreement:bool = False):
+        if not overwrite_agreement: 
+            while not Resource.agreement: # Continuously ask user to agree to software terms, this only runs once per script as this is a class variable
+                response = input(agreement_text).lower().strip()
+
+                if response == "y":
+                    Resource.agreement = True
+                elif response == "n": # If someone does not agree to liscence then terminate script
+                    exit()
+                else:
+                    # Clear the terminal and re-ask
+                    if os.name=='nt': # PORT: Windows
+                        os.system('cls')
+                    else: # PORT: *nix
+                        os.system('clear')
+                    continue
         self.label = label
         self.packages = packages
         self.downloaded = False
@@ -698,7 +777,13 @@ class APTResource:
                     """loop runs until process has terminated"""
 
 def build(*resources):
-    """downloads and installs everything specified"""
+    """Downloads and installs everything specified
+    
+    Parameters
+    ----------
+    resources : (*Resource)
+        Takes in an arbitrary number of Resource python object instances
+    """
     for resource in resources:
         if not resource.downloaded:
             resource.download()
@@ -726,7 +811,6 @@ if __name__ == "__main__": # Used to test out functionality while developing
 
     build()
 
-    # Need to test this more
-    # path = f"C:\\Users\\Kieran\\Downloads\\micro editor\\micro-1.4.1"
 
-    # subprocess.Popen(f'setx path "%path%;{path}"')
+    # program_path = f"C:\\Users\\Kieran\\Downloads\\micro editor\\micro-1.4.1"
+    # os.environ["PATH"] += program_path # Append program path to environment variable
