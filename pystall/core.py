@@ -291,9 +291,9 @@ class EXEResource(Resource):
             if type(self.dependencies) == tuple or type(self.dependencies) == list:
                 for dependency in self.dependencies:
                     build(dependency)
-            else: # If single dependency is specified
+            else:  # If single dependency is specified
                 print(f"installing {self.dependencies.label}")
-                build( self.dependencies)
+                build(self.dependencies)
 
         # Check if already downloaded
         if self.downloaded:
@@ -368,9 +368,9 @@ class MSIResource(Resource):
                 for dependency in self.dependencies:
                     
                     build(dependency)
-            else: # If single dependency is specified
+            else:  # If single dependency is specified
                 print(f"installing {self.dependencies.label}")
-                build( self.dependencies)
+                build(self.dependencies)
 
         # Check if already downloaded
         if self.downloaded:
@@ -445,9 +445,9 @@ class StaticResource(Resource):
                 for dependency in self.dependencies:
                     
                     build(dependency)
-            else: # If single dependency is specified
+            else:  # If single dependency is specified
                 print(f"installing {self.dependencies.label}")
-                build( self.dependencies)
+                build(self.dependencies)
         logging.info("No installation necessary for StaticResources")
 
 class ZIPResource(Resource):
@@ -515,9 +515,9 @@ class ZIPResource(Resource):
                 for dependency in self.dependencies:
                     
                     build(dependency)
-            else: # If single dependency is specified
+            else:  # If single dependency is specified
                 print(f"installing {self.dependencies.label}")
-                build( self.dependencies)
+                build(self.dependencies)
 
         if self.downloaded:
             self.extract()
@@ -587,9 +587,9 @@ class DEBResource(Resource):
                 for dependency in self.dependencies:
                     
                     build(dependency)
-            else: # If single dependency is specified
+            else:  # If single dependency is specified
                 print(f"installing {self.dependencies.label}")
-                build( self.dependencies)
+                build(self.dependencies)
 
         if self.downloaded:
             installer = subprocess.Popen(f"sudo apt install {self.location}", shell=True)
@@ -648,6 +648,21 @@ class CUSTOMPPAResource:
         self.packages = packages
         self.downloaded = False
         self.dependencies = dependencies
+        if not overwrite_agreement:
+            while not Resource.agreement:  # Continuously ask user to agree to software terms, this only runs once per script as this is a class variable
+                response = input(agreement_text).lower().strip()
+
+                if response == "y":
+                    Resource.agreement = True
+                elif response == "n":  # If someone does not agree to liscence then terminate script
+                    sys.exit()
+                else:
+                    # Clear the terminal and re-ask
+                    if os.name == 'nt':  # PORT: Windows
+                        os.system('cls')
+                    else:  # PORT: *nix
+                        os.system('clear')
+                    continue
         
     def download(self):
         """Adds PPA and apt updates"""
@@ -669,9 +684,9 @@ class CUSTOMPPAResource:
                 for dependency in self.dependencies:
                     
                     build(dependency)
-            else: # If single dependency is specified
+            else:  # If single dependency is specified
                 print(f"installing {self.dependencies.label}")
-                build( self.dependencies)
+                build(self.dependencies)
 
         if type(self.packages) == str:
             logging.info(f"Installing{self.packages}")
@@ -754,9 +769,9 @@ class TARBALLResource(Resource):
                 for dependency in self.dependencies:
                     
                     build(dependency)
-            else: # If single dependency is specified
+            else:  # If single dependency is specified
                 print(f"installing {self.dependencies.label}")
-                build( self.dependencies)
+                build(self.dependencies)
 
         if self.downloaded:
             self.extract()
@@ -843,8 +858,8 @@ class APTResource:
             if type(self.dependencies) == tuple or type(self.dependencies) == list:
                 for dependency in self.dependencies:
                     build(dependency)
-            else: # If single dependency is specified
-                build( self.dependencies)
+            else:  # If single dependency is specified
+                build(self.dependencies)
 
         if type(self.packages) == str:
             logging.info(f"Installing{self.packages}")
