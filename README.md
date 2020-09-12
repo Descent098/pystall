@@ -1,4 +1,4 @@
-![pystall logo](https://raw.githubusercontent.com/Descent098/pystall/master/pystall-logo.png)
+![pystall logo](https://raw.githubusercontent.com/Descent098/pystall/master/docs/img/pystall-logo.png)
 
 
 

@@ -24,7 +24,7 @@ def get_content(*filename:str) -> str:
 
 setuptools.setup(
     name = "pystall",
-    version = "0.2.2",
+    version = "0.3.0",
     author = "Kieran Wood",
     author_email = "kieran@canadiancoding.ca",
     description = "A system to automate configuration and setup of fresh Operating systems.",
