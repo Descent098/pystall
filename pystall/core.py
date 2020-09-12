@@ -99,6 +99,52 @@ def show_logs() -> None:
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler(sys.stdout).setFormatter(formatter))
 
+def _add_to_path(program_path:str):
+    """Takes in a path to a program and adds it to the sytem path
+
+    Parameters
+    ----------
+    program_path : str
+        The path to the installation folder of the application
+
+    Notes
+    -----
+    * All paths must be absolute paths
+
+    * The linux version of the command assumes you're using ~/.bashrc
+
+    * Because there are so many possible ways this can fail, there are no catches in place
+
+    Examples
+    --------
+    ```
+    program_path = f"{os.environ['USERPROFILE']}\\Downloads\\micro editor\\micro-1.4.1" # Path that contains the executeable
+    _add_to_path(program_path) # Adds the program_path to the path variable
+    ```
+    """
+
+    if os.name == "nt": # Windows systems
+        import winreg # Allows access to the windows registry
+        import ctypes # Allows interface with low-level C API's
+
+        with winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER) as root: # Get the current user registry
+            with winreg.OpenKey(root, "Environment", 0, winreg.KEY_ALL_ACCESS) as key: # Go to the environment key
+                existing_path_value = winreg.EnumValue(key, 3)[1] # Grab the current path value
+                new_path_value = existing_path_value + program_path + ";" # Takes the current path value and appends the new program path
+                winreg.SetValueEx(key, "PATH", 0, winreg.REG_EXPAND_SZ, new_path_value) # Updated the path with the updated path
+
+            # Tell other processes to update their environment
+            HWND_BROADCAST = 0xFFFF
+            WM_SETTINGCHANGE = 0x1A
+            SMTO_ABORTIFHUNG = 0x0002
+            result = ctypes.c_long()
+            SendMessageTimeoutW = ctypes.windll.user32.SendMessageTimeoutW
+            SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, u"Environment", SMTO_ABORTIFHUNG, 5000, ctypes.byref(result),) 
+    else: # If system is *nix
+        execution_string = f'printf \'\\nexport PATH="{program_path}:$PATH"\' >> ~/.bashrc && source ~/.bashrc' # TODO: Verify this works
+        subprocess.Popen(execution_string)
+    print(f"Added {program_path} to path, please restart shell for changes to take effect")
+
 class Resource(ABC):
     """Base class to be inherited from and extended to suit specific resource.
 
@@ -125,6 +171,9 @@ class Resource(ABC):
 
     overwrite_agreement : (bool)
         Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
 
     Methods
     -------
@@ -242,21 +291,24 @@ class EXEResource(Resource):
 
     label : (str)
         Human readable name for resource and used with extension in files name.
-    
+
     location : (str)
         The path or URL to the resource that needs to be downloaded & installed
-    
+
     arguments : (list|bool)
         Specify any arguments to be passed on installation, False indicates no arguments.
-    
+
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
-    
+
     remove: (bool)
         Whether to delete the .exe after installation, by default True.
 
     overwrite_agreement : (bool)
         Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
 
     Methods
     -------
@@ -334,6 +386,10 @@ class MSIResource(Resource):
     overwrite_agreement : (bool)
         Used to overwrite software agreement, which should only be done for testing and integration purposes
 
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
+
     Methods
     -------
     download:
@@ -366,7 +422,6 @@ class MSIResource(Resource):
         if self.dependencies:
             if type(self.dependencies) == tuple or type(self.dependencies) == list:
                 for dependency in self.dependencies:
-                    
                     build(dependency)
             else:  # If single dependency is specified
                 print(f"installing {self.dependencies.label}")
@@ -411,6 +466,10 @@ class StaticResource(Resource):
     overwrite_agreement : (bool)
         Used to overwrite software agreement, which should only be done for testing and integration purposes
 
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
+
     Methods
     -------
     download:
@@ -436,19 +495,16 @@ class StaticResource(Resource):
 
     def install(self):
         """Does nothing since there are no installation/configuration steps for static files"""
-        
         # install dependencies
         logging.info(f"Installing {self.label}")
         if self.dependencies:
             print(f"Installing {self.label} dependencies")
             if type(self.dependencies) == tuple or type(self.dependencies) == list:
                 for dependency in self.dependencies:
-                    
                     build(dependency)
             else:  # If single dependency is specified
                 print(f"installing {self.dependencies.label}")
                 build(self.dependencies)
-        logging.info("No installation necessary for StaticResources")
 
 class ZIPResource(Resource):
     """Used to download and extract .zip files.
@@ -473,6 +529,10 @@ class ZIPResource(Resource):
 
     overwrite_agreement : (bool)
         Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
 
     Methods
     -------
@@ -553,6 +613,10 @@ class DEBResource(Resource):
     overwrite_agreement : (bool)
         Used to overwrite software agreement, which should only be done for testing and integration purposes
 
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
+
     Methods
     -------
     download:
@@ -621,6 +685,10 @@ class CUSTOMPPAResource:
 
     overwrite_agreement : (bool)
         Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
 
     Methods
     -------
@@ -727,6 +795,10 @@ class TARBALLResource(Resource):
     overwrite_agreement : (bool)
         Used to overwrite software agreement, which should only be done for testing and integration purposes
 
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
+
     Methods
     -------
     download:
@@ -797,6 +869,9 @@ class APTResource:
 
     overwrite_agreement : (bool)
         Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
 
     Methods
     -------
@@ -893,20 +968,8 @@ def build(*resources):
 if __name__ == "__main__":  # Used to test out functionality while developing
     show_logs()
 
-    micro = ZIPResource("micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-win64.zip")
-
-    python = EXEResource("python-installer", "https://www.python.org/ftp/python/3.8.1/python-3.8.1.exe")
-
-    go = MSIResource("Golang", "https://dl.google.com/go/go1.13.5.windows-amd64.msi")
-
     wallpaper = StaticResource("Wallpaper", ".png", "https://images.unsplash.com/photo-1541599468348-e96984315921?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&h=500&q=60")
 
-    atom = DEBResource("Atom", "https://atom.io/download/deb", remove=False)
+    micro = ZIPResource("micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-win64.zip", dependencies=(wallpaper))
 
-    python_linux = CUSTOMPPAResource("Python 3.8", "deadsnakes/ppa", ["python3.7", "python3.8"])
-
-    micro_linux = TARBALLResource("Micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-linux64.tar.gz", remove=False)
-
-    nano = APTResource("Nano Editor", "nano")
-
-    build()
+    build(micro)
