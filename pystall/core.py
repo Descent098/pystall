@@ -64,7 +64,7 @@ TODO
 """
 
 # Standard lib dependencies
-import os                           # Path validation and checking which OS script is being run on.
+import os                           # Path validation and checking which OS script is being run on
 import logging                      # Used to grab logs from functions and classes
 import sys                          # Used to exit cleanly from scripts
 import subprocess                   # Used to install/run binaries once downloaded

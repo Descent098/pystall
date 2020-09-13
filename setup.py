@@ -34,7 +34,7 @@ setuptools.setup(
         'Docs': 'http://pystall.readthedocs.io/',
         'Bug Reports': 'https://github.com/Descent098/pystall',
         'Source': 'https://github.com/Descent098/pystall',
-        'Roadmap': 'https://github.com/Descent098/pystall/projects/1',
+        'Roadmap': 'https://github.com/Descent098/pystall/projects',
     },
     include_package_data = True,
     packages = setuptools.find_packages(),
