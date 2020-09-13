@@ -19,22 +19,40 @@ agreement_text : (str)
 Classes
 -------
 Resource: 
-    Base class to be inherited from and extended to suit specific resource.
+    Base class to be inherited from and extended to suit specific resource
 
 EXEResource(Resource):
-    Used to download and install .exe files.
+    Used to download and install .exe files
 
 MSIResource(Resource):
-    Used to download and install .msi files.
+    Used to download and install .msi files
 
 StaticResource(Resource):
-    Used to download static files (images, videos etc.).
+    Used to download static files (images, videos etc.)
+
+ZIPResource(Resource):
+    Used to download and extract .zip files
+
+DEBResource(Resource):
+    Used to download and install .deb files
+
+CUSTOMPPAResource:
+    Used to download files that are from a third party PPA's
+
+TARBALLResource(Resource):
+    Used to download and extract .tar.gz files
+
+APTResource:
+    Installs resources that are part of an exsiting APT repository
 
 Methods
 -------
 build(*resources):
     Downloads and installs specified resources. 
     NOTE: Pass an arbitrary number of Resource instances (comma delimited)
+
+show_logs():
+    When called sets up a logger to display script logs
 
 Examples
 --------
@@ -91,13 +109,14 @@ agreement_text = """By using pystall you are also agreeing that:
 
 If you agree type y and hit enter, if you disagree type n and hit enter to exit: """
 
-def show_logs() -> None:
+def show_logs():
     """When called sets up a logger to display script logs"""
     LOG_FORMAT = "%(levelname)s | : %(message)s "
     formatter = logging.Formatter(LOG_FORMAT)
     logger = logging.getLogger("pystall")
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler(sys.stdout).setFormatter(formatter))
+
 
 def _add_to_path(program_path:str):
     """Takes in a path to a program and adds it to the sytem path
@@ -144,6 +163,7 @@ def _add_to_path(program_path:str):
         execution_string = f'printf \'\\nexport PATH="{program_path}:$PATH"\' >> ~/.bashrc && source ~/.bashrc' # TODO: Verify this works
         subprocess.Popen(execution_string)
     print(f"Added {program_path} to path, please restart shell for changes to take effect")
+
 
 class Resource(ABC):
     """Base class to be inherited from and extended to suit specific resource.
@@ -506,6 +526,7 @@ class StaticResource(Resource):
                 print(f"installing {self.dependencies.label}")
                 build(self.dependencies)
 
+
 class ZIPResource(Resource):
     """Used to download and extract .zip files.
 
@@ -589,6 +610,7 @@ class ZIPResource(Resource):
             logging.info(f"Removing installer {self.label}")
             os.remove(self.location)
 
+
 class DEBResource(Resource):
     """Used to download and install .deb files.
 
@@ -669,7 +691,7 @@ class DEBResource(Resource):
 
 
 class CUSTOMPPAResource:
-    """Used to download files that are from a third part PPA
+    """Used to download files that are from a third party PPA's
 
     Attributes
     ----------
@@ -771,6 +793,7 @@ class CUSTOMPPAResource:
                 while installer.poll() == None:
                     """loop runs until process has terminated"""
 
+
 class TARBALLResource(Resource):
     """Used to download and extract .tar.gz files.
 
@@ -854,6 +877,7 @@ class TARBALLResource(Resource):
         if self.remove:
             logging.info(f"Removing installer {self.label}")
             os.remove(self.location)
+
 
 class APTResource:
     """Installs resources that are part of an exsiting APT repository
@@ -950,6 +974,7 @@ class APTResource:
 
                 while installer.poll() == None:
                     """loop runs until process has terminated"""
+
 
 def build(*resources):
     """Downloads and installs everything specified
