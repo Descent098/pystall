@@ -48,6 +48,7 @@ setuptools.setup(
     "colored",
     "pyinstaller",
     "distro",
+    "pyyaml"
         ],
     extras_require = {
         "dev" : [
