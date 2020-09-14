@@ -149,11 +149,11 @@ def _validate_resources(resources:dict) -> list:
         elif resources[resource]["type"] == "deb":
             resource_instances.append(DEBResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "ppa":
-            resource_instances.append(CUSTOMPPAResource(resource, resources[resource]["PPA"], resources[resource]["packages"], resources[resource]["overwrite_agreement"]))
+            resource_instances.append(CUSTOMPPAResource(resource, resources[resource]["ppa"], resources[resource]["packages"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "tarball":
             resource_instances.append(TARBALLResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "apt":
-            resource_instances.append(CUSTOMPPAResource(resource, resources[resource]["packages"], resources[resource]["overwrite_agreement"]))
+            resource_instances.append(APTResource(resource, resources[resource]["packages"], resources[resource]["overwrite_agreement"]))
     return resource_instances
 
 
