@@ -96,8 +96,8 @@ from tqdm import tqdm               # Used to create installation/download progr
 
 # Setting up default downloads folder based on OS
 if os.name == "nt":
-    DESKTOP = f"{os.getenv('USERPROFILE')}\Desktop"
-    DOWNLOAD_FOLDER = f"{os.getenv('USERPROFILE')}\Downloads"
+    DESKTOP = f"{os.getenv('USERPROFILE')}\\Desktop"
+    DOWNLOAD_FOLDER = f"{os.getenv('USERPROFILE')}\\Downloads"
 else: # PORT: Assuming variable is there for MacOS and Linux installs
     DESKTOP = f"{os.getenv('HOME')}/Desktop" #TODO: Verify this is the right directory
     DOWNLOAD_FOLDER = f"{os.getenv('HOME')}/Downloads" #TODO: Verify this is the right directory
