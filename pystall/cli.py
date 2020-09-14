@@ -49,7 +49,7 @@ usage = """
     -d, --doc             If present will open up the pystall docs
     """
 
-arguments = docopt(usage, version="Pystall V 0.0.1")
+#arguments = docopt(usage, version="Pystall V 0.0.1")
 
 
 def _read_resource(file_path:str) -> dict:
@@ -81,7 +81,7 @@ def _read_resource(file_path:str) -> dict:
     return resources
 
 
-def _validate_resources(resources:dict) -> tuple:
+def _validate_resources(resources:dict) -> list:
     """Check the required fields for a resource, and validate they are present
 
     Parameters
@@ -91,8 +91,8 @@ def _validate_resources(resources:dict) -> tuple:
 
     Returns
     -------
-    tuple|None
-        Returns a tuple of Resource instances, or None if any of the resources are not properly specified
+    list|None
+        Returns a list of Resource instances, or None if any of the resources are not properly specified
     """
     processed_resources = defaultdict(lambda: False)  # Any unspecified keys will be False
 
@@ -103,7 +103,7 @@ def _validate_resources(resources:dict) -> tuple:
         except KeyError:
             print(f"{fg('red')}Resource {label} does not specify a type{fg('white')}")
             return
-        if not resources[label]["type"] in ["ppa", "apt"]:
+        if not resources[label]["type"] in ["ppa", "apt", "static"]:
             try:
                 resources[label]["location"]  # Checking resource has a location specified
             except KeyError:
@@ -122,31 +122,38 @@ def _validate_resources(resources:dict) -> tuple:
             except KeyError:
                 print(f"{fg('red')}Resource {label} does not specify a package{fg('white')}")
                 return
+        elif resources[label]["type"] == "static":
+            try:
+                resources[label]["extension"]  # Checking resource has extension specified
+                resources[label]["location"]  # Checking resource has a location specified
+            except KeyError:
+                print(f"{fg('red')}Resource {label} does not specify an extension and/or location{fg('white')}")
+                return
 
         processed_resources = defaultdict(lambda: False)  # Any unspecified keys will be False
         for key in resources[label]:  # Convert the inner dict of each resource to a defaultdict
             processed_resources[key] = resources[label][key]
         resources[label] = processed_resources  # Assign the new defaultdict to the old resource key
 
-    resource_instances = ()  # Instantiate empty tuple to fill with resources
+    resource_instances = []  # Instantiate empty tuple to fill with resources
 
     for resource in resources:  # Take resource data and turn them into actual resource instances
         if resources[resource]["type"] == "exe":
-            resource_instances = EXEResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"])
+            resource_instances.append(EXEResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "zip":
-            resource_instances = ZIPResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"])
+            resource_instances.append(ZIPResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "msi":
-            resource_instances = MSIResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"])
+            resource_instances.append(MSIResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "static":
-            resource_instances = StaticResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"])
+            resource_instances.append(StaticResource(resource, resources[resource]["extension"], resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "deb":
-            resource_instances = DEBResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"])
+            resource_instances.append(DEBResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "ppa":
-            resource_instances = CUSTOMPPAResource(resource, resources[resource]["PPA"], resources[resource]["packages"], resources[resource]["overwrite_agreement"])
+            resource_instances.append(CUSTOMPPAResource(resource, resources[resource]["PPA"], resources[resource]["packages"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "tarball":
-            resource_instances = TARBALLResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"])
+            resource_instances.append(TARBALLResource(resource, resources[resource]["location"], resources[resource]["arguments"], resources[resource]["downloaded"], resources[resource]["remove"], resources[resource]["overwrite_agreement"]))
         elif resources[resource]["type"] == "apt":
-            resource_instances = CUSTOMPPAResource(resource, resources[resource]["packages"], resources[resource]["overwrite_agreement"])
+            resource_instances.append(CUSTOMPPAResource(resource, resources[resource]["packages"], resources[resource]["overwrite_agreement"]))
     return resource_instances
 
 
@@ -170,7 +177,9 @@ def build_from_file(*resource_files:str):
     for resource_file in resource_files:
         resources = _read_resource(resource_file)
         resources = _validate_resources(resources)
+        print(f"Validated {resources=} specified in {resource_file=}")
         if resources:  # If resource preprocessing succeeds
-            build(resources)
+            for resource in resources:
+                build(resource)
         else:  # If resource preprocessing fails
             print(f"{fg('red')}Ran into error preprocessing resources, see above for details{fg('white')}")
