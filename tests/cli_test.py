@@ -26,9 +26,10 @@ from pystall.cli import *                      # Imports the pystall cli functio
 if os.name == "nt":
     DESKTOP = f"{os.getenv('USERPROFILE')}\\Desktop"
     DOWNLOAD_FOLDER = f"{os.getenv('USERPROFILE')}\\Downloads"
-else: # PORT: Assuming variable is there for MacOS and Linux installs
-    DESKTOP = f"{os.getenv('HOME')}/Desktop" #TODO: Verify this is the right directory
-    DOWNLOAD_FOLDER = f"{os.getenv('HOME')}/Downloads" #TODO: Verify this is the right directory
+else:  # PORT: Assuming variable is there for MacOS and Linux installs
+    DESKTOP = f"{os.getenv('HOME')}/Desktop"  # TODO: Verify this is the right directory
+    DOWNLOAD_FOLDER = f"{os.getenv('HOME')}/Downloads"  # TODO: Verify this is the right directory
+
 
 def test_file_build():
     # 1. Create resource file
@@ -66,6 +67,4 @@ Resources:
     remove_directory(f"{DOWNLOAD_FOLDER}{os.sep}Micro Zip")
     remove_directory(f"{DOWNLOAD_FOLDER}{os.sep}Micro Tarball")
     os.remove(f"{DOWNLOAD_FOLDER}{os.sep}Wallpaper.png")
-    os.remove(f"resource.yml")
-
-    pass
+    os.remove("resource.yml")

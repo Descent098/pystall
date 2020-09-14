@@ -49,7 +49,7 @@ usage = """
     -d, --doc             If present will open up the pystall docs
     """
 
-#arguments = docopt(usage, version="Pystall V 0.0.1")
+arguments = docopt(usage, version="Pystall V 0.0.1")
 
 
 def _read_resource(file_path:str) -> dict:
@@ -177,7 +177,6 @@ def build_from_file(*resource_files:str):
     for resource_file in resource_files:
         resources = _read_resource(resource_file)
         resources = _validate_resources(resources)
-        print(f"Validated {resources=} specified in {resource_file=}")
         if resources:  # If resource preprocessing succeeds
             for resource in resources:
                 build(resource)

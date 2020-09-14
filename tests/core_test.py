@@ -42,6 +42,7 @@ def test_archive_extract():
     assert os.path.isdir(f"{DOWNLOAD_FOLDER}{os.sep}Micro Zip")
     assert os.path.isdir(f"{DOWNLOAD_FOLDER}{os.sep}Micro Tarball")
 
+
 def test_build():
     """Tests that resources are built properly"""
     # Define resources
