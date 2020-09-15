@@ -5,25 +5,54 @@ This module contains core functionality of Pystall including:
     - The included basic Resource subclasses
     - The build() method
 
+Module Variables
+----------------
+DESKTOP : (str)
+    This is the path to the current user desktop folder, it is OS independant
+
+DOWNLOAD_FOLDER : (str)
+    This is the path to the current user downloads folder, it is OS independant
+
+agreement_text : (str)
+    The agreement users must make on each run to use pystall
+
 Classes
 -------
 Resource: 
-    Base class to be inherited from and extended to suit specific resource.
+    Base class to be inherited from and extended to suit specific resource
 
 EXEResource(Resource):
-    Used to download and install .exe files.
+    Used to download and install .exe files
 
 MSIResource(Resource):
-    Used to download and install .msi files.
+    Used to download and install .msi files
 
 StaticResource(Resource):
-    Used to download static files (images, videos etc.).
+    Used to download static files (images, videos etc.)
+
+ZIPResource(Resource):
+    Used to download and extract .zip files
+
+DEBResource(Resource):
+    Used to download and install .deb files
+
+CUSTOMPPAResource:
+    Used to download files that are from a third party PPA's
+
+TARBALLResource(Resource):
+    Used to download and extract .tar.gz files
+
+APTResource:
+    Installs resources that are part of an exsiting APT repository
 
 Methods
 -------
 build(*resources):
     Downloads and installs specified resources. 
     NOTE: Pass an arbitrary number of Resource instances (comma delimited)
+
+show_logs():
+    When called sets up a logger to display script logs
 
 Examples
 --------
@@ -53,32 +82,89 @@ TODO
 """
 
 # Standard lib dependencies
-import os                           # Path validation and checking which OS script is being run on.
+import os                           # Path validation and checking which OS script is being run on
 import logging                      # Used to grab logs from functions and classes
-
+import sys                          # Used to exit cleanly from scripts
 import subprocess                   # Used to install/run binaries once downloaded
 from zipfile import ZipFile         # Used to extract files from .zip archives
-import tarfile
+import tarfile                      # Used to extract tarball archives
 from abc import ABC, abstractmethod # Used to enforce subclassing from base Resource class
 
 # Third party dependencies
 import requests                     # Used to download files from the web
 from tqdm import tqdm               # Used to create installation/download progress bars
 
-
 # Setting up default downloads folder based on OS
 if os.name == "nt":
-    DESKTOP = f"{os.getenv('USERPROFILE')}\Desktop"
-    DOWNLOAD_FOLDER = f"{os.getenv('USERPROFILE')}\Downloads"
+    DESKTOP = f"{os.getenv('USERPROFILE')}\\Desktop"
+    DOWNLOAD_FOLDER = f"{os.getenv('USERPROFILE')}\\Downloads"
 else: # PORT: Assuming variable is there for MacOS and Linux installs
-    DESKTOP = f"{os.getenv('HOMER')}/Desktop" #TODO: Verify this is the right directory
-    DOWNLOAD_FOLDER = f"{os.getenv('HOME')}/Downloads" #TODO: Verify this is the right directory
+    DESKTOP = f"{os.getenv('HOME')}/Desktop" 
+    DOWNLOAD_FOLDER = f"{os.getenv('HOME')}/Downloads" 
+
+# The agreement users must make on each run to use pystall
+agreement_text = """By using pystall you are also agreeing that:
+    1. There is no responsibility or accountability on the part of the creator for how this library is used
+    2. You agree to any and all required software liscences for the software you install using pystall
+
+If you agree type y and hit enter, if you disagree type n and hit enter to exit: """
 
 def show_logs():
-    import sys
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(logging.StreamHandler(sys.stdout))
+    """When called sets up a logger to display script logs"""
+    LOG_FORMAT = "%(levelname)s | : %(message)s "
+    formatter = logging.Formatter(LOG_FORMAT)
+    logger = logging.getLogger("pystall")
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler(sys.stdout).setFormatter(formatter))
+
+
+def _add_to_path(program_path:str):
+    """Takes in a path to a program and adds it to the sytem path
+
+    Parameters
+    ----------
+    program_path : str
+        The path to the installation folder of the application
+
+    Notes
+    -----
+    * All paths must be absolute paths
+
+    * The linux version of the command assumes you're using ~/.bashrc
+
+    * Because there are so many possible ways this can fail, there are no catches in place
+
+    Examples
+    --------
+    ```
+    program_path = f"{os.environ['USERPROFILE']}\\Downloads\\micro editor\\micro-1.4.1" # Path that contains the executeable
+    _add_to_path(program_path) # Adds the program_path to the path variable
+    ```
+    """
+
+    if os.name == "nt": # Windows systems
+        import winreg # Allows access to the windows registry
+        import ctypes # Allows interface with low-level C API's
+
+        with winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER) as root: # Get the current user registry
+            with winreg.OpenKey(root, "Environment", 0, winreg.KEY_ALL_ACCESS) as key: # Go to the environment key
+                existing_path_value = winreg.EnumValue(key, 3)[1] # Grab the current path value
+                new_path_value = existing_path_value + program_path + ";" # Takes the current path value and appends the new program path
+                winreg.SetValueEx(key, "PATH", 0, winreg.REG_EXPAND_SZ, new_path_value) # Updated the path with the updated path
+
+            # Tell other processes to update their environment
+            HWND_BROADCAST = 0xFFFF
+            WM_SETTINGCHANGE = 0x1A
+            SMTO_ABORTIFHUNG = 0x0002
+            result = ctypes.c_long()
+            SendMessageTimeoutW = ctypes.windll.user32.SendMessageTimeoutW
+            SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, u"Environment", SMTO_ABORTIFHUNG, 5000, ctypes.byref(result),) 
+    else: # If system is *nix
+        with open(f"{os.getenv('HOME')}/.bashrc", "a") as bash_file:  # Open bashrc file
+            bash_file.write(f'\nexport PATH="{program_path}:$PATH"\n')  # Add program path to Path variable
+        os.system(f". {os.getenv('HOME')}/.bashrc")  # Update bash source
+    print(f"Added {program_path} to path, please restart shell for changes to take effect")
+
 
 class Resource(ABC):
     """Base class to be inherited from and extended to suit specific resource.
@@ -86,20 +172,29 @@ class Resource(ABC):
     Attributes
     ----------
 
+    agreement : (bool)
+        A class variable to confirm that users
+
     label : (str)
         Human readable name for resource and used with extension in files name.
 
     extensions : (str)
         The extension of the filetype being downloaded
-    
+
     location : (str)
         The path or URL to the resource that needs to be downloaded & installed
-    
+
     arguments : (list|bool)
         Specify any arguments to be passed on installation, False indicates no arguments.
-    
+
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
+
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
 
     Methods
     -------
@@ -122,15 +217,34 @@ class Resource(ABC):
             pass
     ```
     """
-    def __init__(self, label, extension, location, arguments = False, downloaded = False):
-        
+    # Software liscence agreement that runs on import
+    agreement = False
+
+    def __init__(self, label:str, extension:str, location:str, arguments:list = False, downloaded:bool = False, overwrite_agreement:bool = False, dependencies:tuple = ()):
+        if not overwrite_agreement:
+            while not Resource.agreement:  # Continuously ask user to agree to software terms, this only runs once per script as this is a class variable
+                response = input(agreement_text).lower().strip()
+
+                if response == "y":
+                    Resource.agreement = True
+                elif response == "n":  # If someone does not agree to liscence then terminate script
+                    sys.exit()
+                else:
+                    # Clear the terminal and re-ask
+                    if os.name == 'nt':  # PORT: Windows
+                        os.system('cls')
+                    else:  # PORT: *nix
+                        os.system('clear')
+                    continue
+
         self.label = label
         self.extension = extension
         self.location = location
         self.arguments = arguments
         self.downloaded = downloaded
+        self.dependencies = dependencies
 
-    def download(self, file_path = False):
+    def download(self, file_path:str = False):
         """Downloads Resource from location specified in self.location of the instance.
 
         Attributes
@@ -139,7 +253,7 @@ class Resource(ABC):
             The path to where the resource should download to. 
             Leave as false for download folder + name + extension.
             NOTE: Custom paths MUST include extension.
-        
+
         Examples
         --------
         ```
@@ -158,10 +272,25 @@ class Resource(ABC):
             self.location = file_path
             return
 
-        if self.location.startswith("https://") or self.location.startswith("http://"): 
+        if self.location.startswith("https://") or self.location.startswith("http://"): # If URL is provided start download
             logging.info("Starting binary download")
-            file_content = requests.get(self.location)
-            open(file_path, 'wb').write(file_content.content) # Save file
+
+            # Setting up necessary download variables
+            file_stream = requests.get(self.location, stream=True) # The open http request for the file
+            chunk_size = 1024 # Setting the progress bar chunk size to measure in kb
+            total_length = int(file_stream.headers.get('content-length')) # Getting file size
+
+            # Setting up the download progress bar
+            progress_bar = tqdm(total=total_length, unit='iB', unit_scale=True)
+            progress_bar.set_description(f"Download progress for {self.label}:")
+
+            # Write the incoming data stream to a file and update progress bar as it downloads
+            with open(file_path, 'wb') as download_file: 
+                for chunk in file_stream.iter_content(chunk_size): 
+                    if chunk:
+                        progress_bar.update(len(chunk))
+                        download_file.write(chunk)
+            progress_bar.close()
             # TODO: Error catching
             self.downloaded = True
             self.location = file_path
@@ -183,18 +312,24 @@ class EXEResource(Resource):
 
     label : (str)
         Human readable name for resource and used with extension in files name.
-    
+
     location : (str)
         The path or URL to the resource that needs to be downloaded & installed
-    
+
     arguments : (list|bool)
         Specify any arguments to be passed on installation, False indicates no arguments.
-    
+
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
-    
+
     remove: (bool)
         Whether to delete the .exe after installation, by default True.
+
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
 
     Methods
     -------
@@ -215,21 +350,34 @@ class EXEResource(Resource):
     build(python) # Runs the download() and install() methods on the 'python' instance
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".exe", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments:list = False, downloaded:bool = False, remove:bool = True, overwrite_agreement:bool = False, dependencies:tuple = ()):
+        super().__init__(label, ".exe", location, arguments, downloaded, overwrite_agreement, dependencies)
         self.remove = remove
 
     def install(self):
         """Runs the .exe specified in self.location"""
+        print(f"Installing {self.label}")
+
+        # install dependencies
+        if self.dependencies:
+            print(f"Installing {self.label} dependencies")
+            if type(self.dependencies) == tuple or type(self.dependencies) == list:
+                for dependency in self.dependencies:
+                    build(dependency)
+            else:  # If single dependency is specified
+                print(f"installing {self.dependencies.label}")
+                build(self.dependencies)
+
+        # Check if already downloaded
         if self.downloaded:
-            logging.info(f"Installing {self.label}")
             installer = subprocess.Popen(self.location, shell=True)
         else:
             logging.error(f"{self.label} failed to install due to not being downloaded")
 
+        # Wait until installation is complete
         while installer.poll() == None:
             """loop runs until process has terminated"""
-        
+
         if self.remove:
             logging.info(f"Removing installer {self.label}")
             os.remove(self.location)
@@ -256,6 +404,13 @@ class MSIResource(Resource):
     remove: (bool)
         Whether to delete the .msi after installation, by default True.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
+
     Methods
     -------
     download:
@@ -275,18 +430,31 @@ class MSIResource(Resource):
     build(go) # Runs the download() and install() methods on the 'go' instance
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".msi", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments:list = False, downloaded:bool = False, remove:bool = True, overwrite_agreement:bool = False, dependencies:tuple = ()):
+        super().__init__(label, ".msi", location, arguments, downloaded, overwrite_agreement, dependencies)
         self.remove = remove
 
     def install(self):
         """Runs the .msi file with specified arguments."""
+        print(f"Installing {self.label}")
+
+        # install dependencies
+        print(f"Installing {self.label} dependencies")
+        if self.dependencies:
+            if type(self.dependencies) == tuple or type(self.dependencies) == list:
+                for dependency in self.dependencies:
+                    build(dependency)
+            else:  # If single dependency is specified
+                print(f"installing {self.dependencies.label}")
+                build(self.dependencies)
+
+        # Check if already downloaded
         if self.downloaded:
-            logging.info(f"Installing {self.label}")
             installer = subprocess.Popen(self.location, shell=True)
         else:
             logging.error(f"{self.name} failed to install due to not being downloaded")
 
+        # Wait until installation is complete
         while installer.poll() == None:
             """loop runs until process has terminated"""
 
@@ -316,6 +484,13 @@ class StaticResource(Resource):
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
+
     Methods
     -------
     download:
@@ -336,12 +511,22 @@ class StaticResource(Resource):
     build(wallpaper) # Another option to download the Resource
     ```
     """
-    def __init__(self, label, extension, location, arguments = False, downloaded = False):
-        super().__init__(label, extension, location, arguments, downloaded)
+    def __init__(self, label:str, extension:str, location:str, arguments:list = False, downloaded:bool = False, overwrite_agreement:bool = False, dependencies:tuple = ()):
+        super().__init__(label, extension, location, arguments, downloaded, overwrite_agreement, dependencies)
 
     def install(self):
         """Does nothing since there are no installation/configuration steps for static files"""
-        logging.info("No installation necessary for StaticResources")
+        # install dependencies
+        logging.info(f"Installing {self.label}")
+        if self.dependencies:
+            print(f"Installing {self.label} dependencies")
+            if type(self.dependencies) == tuple or type(self.dependencies) == list:
+                for dependency in self.dependencies:
+                    build(dependency)
+            else:  # If single dependency is specified
+                print(f"installing {self.dependencies.label}")
+                build(self.dependencies)
+
 
 class ZIPResource(Resource):
     """Used to download and extract .zip files.
@@ -364,6 +549,13 @@ class ZIPResource(Resource):
     remove: (bool)
         Whether to delete the .zip after installation, by default True.
 
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
+
     Methods
     -------
     download:
@@ -383,21 +575,33 @@ class ZIPResource(Resource):
     build(micro)
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".zip", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments:list = False, downloaded:bool = False, remove:bool = True, overwrite_agreement:bool = False, dependencies:tuple = ()):
+        super().__init__(label, ".zip", location, arguments, downloaded, overwrite_agreement, dependencies)
         self.remove = remove
 
     def extract(self):
         """Extracts the .zip file."""
-        extract_path = self.location[:-3:]
+        extract_path = self.location[:-4:]
         logging.info(f"Extracting Zip archive {self.location} to {extract_path}")
         with ZipFile(self.location, "r") as archive:
                 archive.extractall(extract_path) # Strip extension and extract to folder
 
     def install(self):
-        """Extracts the .zip file and runs necessary installation steps. NOTE: Not yet implemented"""
+        """Extracts the .zip file and runs necessary installation steps."""
+        print(f"Extracting {self.label}")
+
+        # install dependencies
+        if self.dependencies:
+            logging.info(f"Installing {self.label} dependencies")
+            if type(self.dependencies) == tuple or type(self.dependencies) == list:
+                for dependency in self.dependencies:
+                    
+                    build(dependency)
+            else:  # If single dependency is specified
+                print(f"installing {self.dependencies.label}")
+                build(self.dependencies)
+
         if self.downloaded:
-            logging.info(f"Installing {self.label}")
             self.extract()
             
         else:
@@ -407,6 +611,7 @@ class ZIPResource(Resource):
             logging.info(f"Removing installer {self.label}")
             os.remove(self.location)
 
+
 class DEBResource(Resource):
     """Used to download and install .deb files.
 
@@ -415,18 +620,25 @@ class DEBResource(Resource):
 
     label : (str)
         Human readable name for resource and used with extension in files name.
-    
+
     location : (str)
         The path or URL to the resource that needs to be downloaded & installed
     
     arguments : (list|bool)
         Specify any arguments to be passed on installation, False indicates no arguments.
-    
+
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
 
     remove: (bool)
         Whether to delete the .deb after installation, by default True.
+
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
 
     Methods
     -------
@@ -447,14 +659,26 @@ class DEBResource(Resource):
     build(atom) # Runs the download() and install() methods on the 'atom' instance
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".deb", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments:list = False, downloaded:bool = False, remove:bool = True, overwrite_agreement:bool = False, dependencies:tuple = ()):
+        super().__init__(label, ".deb", location, arguments, downloaded, overwrite_agreement, dependencies)
         self.remove = remove
 
     def install(self):
         """Runs the .msi file with specified arguments."""
+        print(f"Installing {self.label}")
+
+        # install dependencies
+        if self.dependencies:
+            logging.info(f"Installing {self.label} dependencies")
+            if type(self.dependencies) == tuple or type(self.dependencies) == list:
+                for dependency in self.dependencies:
+                    
+                    build(dependency)
+            else:  # If single dependency is specified
+                print(f"installing {self.dependencies.label}")
+                build(self.dependencies)
+
         if self.downloaded:
-            logging.info(f"Installing {self.label}")
             installer = subprocess.Popen(f"sudo apt install {self.location}", shell=True)
         else:
             logging.error(f"{self.name} failed to install due to not being downloaded")
@@ -468,7 +692,7 @@ class DEBResource(Resource):
 
 
 class CUSTOMPPAResource:
-    """Used to download files that are from a third part PPA
+    """Used to download files that are from a third party PPA's
 
     Attributes
     ----------
@@ -481,6 +705,13 @@ class CUSTOMPPAResource:
     
     packages : (list|str)
         Specify either a list of packages to install, or a string with a package name.
+
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
 
     Methods
     -------
@@ -502,11 +733,27 @@ class CUSTOMPPAResource:
     ```
 
     """
-    def __init__(self, label, PPA, packages):
+    def __init__(self, label:str, PPA:str, packages:list, overwrite_agreement:bool = False, dependencies:tuple = ()):
         self.label = label
         self.PPA = PPA
         self.packages = packages
         self.downloaded = False
+        self.dependencies = dependencies
+        if not overwrite_agreement:
+            while not Resource.agreement:  # Continuously ask user to agree to software terms, this only runs once per script as this is a class variable
+                response = input(agreement_text).lower().strip()
+
+                if response == "y":
+                    Resource.agreement = True
+                elif response == "n":  # If someone does not agree to liscence then terminate script
+                    sys.exit()
+                else:
+                    # Clear the terminal and re-ask
+                    if os.name == 'nt':  # PORT: Windows
+                        os.system('cls')
+                    else:  # PORT: *nix
+                        os.system('clear')
+                    continue
         
     def download(self):
         """Adds PPA and apt updates"""
@@ -519,7 +766,18 @@ class CUSTOMPPAResource:
 
     def install(self):
         """Installs specified packages"""
-        logging.info(f"Installing {self.label}")
+        print(f"Installing {self.label}")
+
+        # install dependencies
+        if self.dependencies:
+            logging.info(f"Installing {self.label} dependencies")
+            if type(self.dependencies) == tuple or type(self.dependencies) == list:
+                for dependency in self.dependencies:
+                    
+                    build(dependency)
+            else:  # If single dependency is specified
+                print(f"installing {self.dependencies.label}")
+                build(self.dependencies)
 
         if type(self.packages) == str:
             logging.info(f"Installing{self.packages}")
@@ -536,6 +794,7 @@ class CUSTOMPPAResource:
                 while installer.poll() == None:
                     """loop runs until process has terminated"""
 
+
 class TARBALLResource(Resource):
     """Used to download and extract .tar.gz files.
 
@@ -544,18 +803,25 @@ class TARBALLResource(Resource):
 
     label : (str)
         Human readable name for resource and used with extension in files name.
-    
+
     location : (str)
         The path or URL to the resource that needs to be downloaded & installed
-    
+
     arguments : (list|bool)
         Specify any arguments to be passed on installation, False indicates no arguments.
-    
+
     downloaded : (bool)
         Used to delineate if Resource is downloaded, if using local file set to True, else leave as False.
 
     remove: (bool)
         Whether to delete the .zip after installation, by default True.
+
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
+
 
     Methods
     -------
@@ -576,8 +842,8 @@ class TARBALLResource(Resource):
     build(micro)
     ```
     """
-    def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
-        super().__init__(label, ".tar.gz", location, arguments, downloaded)
+    def __init__(self, label:str, location:str, arguments = False, downloaded = False, remove = True, overwrite_agreement:bool = False, dependencies:tuple = ()):
+        super().__init__(label, ".tar.gz", location, arguments, downloaded, overwrite_agreement, dependencies)
         self.remove = remove
 
     def extract(self):
@@ -589,16 +855,30 @@ class TARBALLResource(Resource):
 
     def install(self):
         """Extracts the .zip file and runs necessary installation steps. NOTE: Not yet implemented"""
+        print(f"Extracting {self.label}")
+
+        # install dependencies
+        if self.dependencies:
+            logging.info(f"Installing {self.label} dependencies")
+
+            if type(self.dependencies) == tuple or type(self.dependencies) == list:
+                for dependency in self.dependencies:
+                    
+                    build(dependency)
+            else:  # If single dependency is specified
+                print(f"installing {self.dependencies.label}")
+                build(self.dependencies)
+
         if self.downloaded:
-            logging.info(f"Installing {self.label}")
             self.extract()
-            
+
         else:
             logging.error(f"{self.name} failed to install due to not being downloaded")
 
         if self.remove:
             logging.info(f"Removing installer {self.label}")
             os.remove(self.location)
+
 
 class APTResource:
     """Installs resources that are part of an exsiting APT repository
@@ -611,6 +891,12 @@ class APTResource:
     
     packages : (list|str)
         Specify either a list of packages to install, or a string with a package name.
+
+    overwrite_agreement : (bool)
+        Used to overwrite software agreement, which should only be done for testing and integration purposes
+
+    dependencies : (tuple[Resource])
+        A tuple of the necessary Resources to install 
 
     Methods
     -------
@@ -632,11 +918,27 @@ class APTResource:
     ```
 
     """
-    def __init__(self, label, packages):
+    def __init__(self, label:str, packages:list, overwrite_agreement:bool = False, dependencies:tuple = ()):
+        if not overwrite_agreement:
+            while not Resource.agreement:  # Continuously ask user to agree to software terms, this only runs once per script as this is a class variable
+                response = input(agreement_text).lower().strip()
+
+                if response == "y":
+                    Resource.agreement = True
+                elif response == "n":  # If someone does not agree to liscence then terminate script
+                    sys.exit()
+                else:
+                    # Clear the terminal and re-ask
+                    if os.name == 'nt':  # PORT: Windows
+                        os.system('cls')
+                    else:  # PORT: *nix
+                        os.system('clear')
+                    continue
         self.label = label
         self.packages = packages
         self.downloaded = False
-        
+        self.dependencies = dependencies
+
     def download(self):
         """Updates apt packages using 'sudo apt-get update' """
 
@@ -648,7 +950,16 @@ class APTResource:
 
     def install(self):
         """Installs specified packages"""
-        logging.info(f"Installing {self.label}")
+        print(f"Installing {self.label}")
+
+        # install dependencies
+        if self.dependencies:
+            logging.info(f"Installing {self.label} dependencies")
+            if type(self.dependencies) == tuple or type(self.dependencies) == list:
+                for dependency in self.dependencies:
+                    build(dependency)
+            else:  # If single dependency is specified
+                build(self.dependencies)
 
         if type(self.packages) == str:
             logging.info(f"Installing{self.packages}")
@@ -665,36 +976,26 @@ class APTResource:
                 while installer.poll() == None:
                     """loop runs until process has terminated"""
 
+
 def build(*resources):
-    """downloads and installs everything specified"""
+    """Downloads and installs everything specified
+    
+    Parameters
+    ----------
+    resources : (*Resource)
+        Takes in an arbitrary number of Resource python object instances
+    """
     for resource in resources:
         if not resource.downloaded:
             resource.download()
         resource.install()
 
 
-if __name__ == "__main__": # Used to test out functionality while developing
+if __name__ == "__main__":  # Used to test out functionality while developing
     show_logs()
-    
-    micro = ZIPResource("micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-win64.zip")
-    
-    python = EXEResource("python-installer", "https://www.python.org/ftp/python/3.8.1/python-3.8.1.exe")
-    
-    go = MSIResource("Golang", "https://dl.google.com/go/go1.13.5.windows-amd64.msi")
-    
+
     wallpaper = StaticResource("Wallpaper", ".png", "https://images.unsplash.com/photo-1541599468348-e96984315921?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&h=500&q=60")
-   
-    atom = DEBResource("Atom", "https://atom.io/download/deb", remove=False)
 
-    python_linux = CUSTOMPPAResource("Python 3.8", "deadsnakes/ppa", ["python3.7", "python3.8"])
+    micro = ZIPResource("micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-win64.zip", dependencies=(wallpaper))
 
-    micro_linux = TARBALLResource("Micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-linux64.tar.gz", remove=False)
-
-    nano = APTResource("Nano Editor", "nano")
-
-    build()
-
-    # Need to test this more
-    # path = f"C:\\Users\\Kieran\\Downloads\\micro editor\\micro-1.4.1"
-
-    # subprocess.Popen(f'setx path "%path%;{path}"')
+    build(micro)

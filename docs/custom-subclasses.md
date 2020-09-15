@@ -38,14 +38,14 @@ class Resource(ABC):
     Examples
     --------
     Subclassing a static resource class to download static assets (images, videos etc.)
-    ```
+	\`\`\`
     class StaticResource(Resource):
         def __init__(self, label, extension, location, arguments = False, downloaded = False):
             super().__init__(label, extension, location, arguments, downloaded)
         def install(self):
             logging.info("No installation necessary for StaticResources")
             pass
-    ```
+    \`\`\`
     """
     def __init__(self, label, extension, location, arguments = False, downloaded = False):
         
@@ -54,7 +54,7 @@ class Resource(ABC):
         self.location = location
         self.arguments = arguments
         self.downloaded = downloaded
-
+    
     def download(self, file_path = False):
         """Downloads Resource from location specified in self.location of the instance.
         
@@ -67,28 +67,28 @@ class Resource(ABC):
         
         Examples
         --------
-        ```
+        \`\`\`
         python = EXEResource('python-installer', 'https://www.python.org/ftp/python/3.8.1/python-3.8.1.exe')
         python.download() # Downloads python installer exe to OS downloads folder
-        ```
+        \`\`\`
         """
         logging.info(f"Downloading {self.label}")
-
+    
         if not file_path:
             file_path = f"{DOWNLOAD_FOLDER}{os.sep}{self.label}{self.extension}"
-
+    
         if os.path.exists(file_path): # If file already exists
             self.downloaded = True
             self.location = file_path
             return
-
+    
         logging.info("Starting binary download")
         file_content = requests.get(self.location)
         open(file_path, 'wb').write(file_content.content) # Save file
         # TODO: Error catching
         self.downloaded = True
         self.location = file_path
-
+    
     @abstractmethod
     def install(self) -> None:
         """installation steps after all necessary downloads are completed"""
@@ -140,23 +140,23 @@ class ZIPResource(Resource):
         
     Examples
     --------
-    ```
+	\`\`\`
     from pystall.core import ZIPResource, build
     micro = ZIPResource("micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-win64.zip")
     build(micro)
-    ```
+    \`\`\`
     """
     def __init__(self, label, location, arguments = False, downloaded = False, remove = True):
         super().__init__(label, ".zip", location, arguments, downloaded)
         self.remove = remove
-
+    
     def extract(self):
         """Extracts the .zip file."""
         extract_path = self.location[:-3:]
         logging.info(f"Extracting Zip archive {self.location} to {extract_path}")
         with ZipFile(self.location, "r") as archive:
                 archive.extractall(extract_path) # Strip extension and extract to folder
-
+    
     def install(self):
         """Extracts the .zip file and runs necessary installation steps. NOTE: Not yet implemented"""
         if self.downloaded:
@@ -165,7 +165,7 @@ class ZIPResource(Resource):
             
         else:
             logging.error(f"{self.name} failed to install due to not being downloaded")
-
+    
         if self.remove:
             logging.info(f"Removing installer {self.label}")
             os.remove(self.location)

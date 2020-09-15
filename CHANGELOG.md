@@ -1,19 +1,23 @@
 # Changelog
 
-## V 0.3.0 TBA
+## V 0.3.0 September 15th 2020
 
-Focus for this release was organization and finer details.
+Focus for this release is to make the whole API more user and dev friendly.
 
 Features:
-- .rpm support
 - Notification to let people know that they have to agree to the TOS of each piece of software
 - Ability to specify resources as dependencies
-- Generic command wrapper
-- Resource file format
+- Resource file format; use YAML files to specify a set of resources
+- Added download progress bars
+- Created function to add folders to path (will be implemented in next release)
 
 Development QOL:
 - Added user docs to the repo under /docs
-- ReadTheDocs Site
+- ReadTheDocs Site update
+- Added test suite
+- Added deepsource.io for quality validation
+- Added type hints to all functions/methods
+- Moved from universal planning board to version specific planning boards
 
 ## V 0.2.0 January 15th 2020
 

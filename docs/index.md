@@ -1,6 +1,6 @@
 # Welcome to the Pystall Docs
 
-<img src="https://raw.githubusercontent.com/Descent098/pystall/master/pystall-logo.png" alt="pystall logo" style="zoom:100%;  margin-left: auto; margin-right: auto; display: block;"/>
+<img src="https://raw.githubusercontent.com/Descent098/pystall/master/docs/img/pystall-logo.png" alt="pystall logo" style="zoom:100%;  margin-left: auto; margin-right: auto; display: block;"/>
 
 Pystall is a utility to help download & install resources on your system. Unlike regular configuration utilities pystall is designed to be run-and-done without leaving any daemons or obscure monitoring services running on your machine.
 
@@ -8,7 +8,14 @@ Pystall is a utility to help download & install resources on your system. Unlike
 
 If you just want to dive in check out the [quick-start](/quick-start) for the basic usage and installation details.
 
+## Features
 
+- Pull from a [built in resource library](https://pystall.readthedocs.io/en/latest/resource-library-list/) for quick installation
+- Define your own [custom local and remote resources](https://pystall.readthedocs.io/en/latest/quick-start/#custom-defined-resources)
+- Built in [logging](#logging)
+- The ability to build scrips into a [no dependency binary](https://pystall.readthedocs.io/en/latest/creating-binary-distributions/)
+- Specification of [resources in files](https://pystall.readthedocs.io/en/latest/file-resources/)
+- And more
 
 ## What is Pystall?
 
