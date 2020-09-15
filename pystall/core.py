@@ -99,8 +99,8 @@ if os.name == "nt":
     DESKTOP = f"{os.getenv('USERPROFILE')}\\Desktop"
     DOWNLOAD_FOLDER = f"{os.getenv('USERPROFILE')}\\Downloads"
 else: # PORT: Assuming variable is there for MacOS and Linux installs
-    DESKTOP = f"{os.getenv('HOME')}/Desktop" #TODO: Verify this is the right directory
-    DOWNLOAD_FOLDER = f"{os.getenv('HOME')}/Downloads" #TODO: Verify this is the right directory
+    DESKTOP = f"{os.getenv('HOME')}/Desktop" 
+    DOWNLOAD_FOLDER = f"{os.getenv('HOME')}/Downloads" 
 
 # The agreement users must make on each run to use pystall
 agreement_text = """By using pystall you are also agreeing that:
@@ -160,9 +160,10 @@ def _add_to_path(program_path:str):
             SendMessageTimeoutW = ctypes.windll.user32.SendMessageTimeoutW
             SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, u"Environment", SMTO_ABORTIFHUNG, 5000, ctypes.byref(result),) 
     else: # If system is *nix
-        execution_string = f'printf \'\\nexport PATH="{program_path}:$PATH"\' >> ~/.bashrc && source ~/.bashrc' # TODO: Verify this works
-        subprocess.Popen(execution_string)
-    print(f"Added {program_path} to path, please restart shell for changes to take effect")
+        with open(f"{os.getenv('HOME')}/.bashrc", "a") as bash_file:
+            bash_file.write(f'\nexport PATH="{program_path}:$PATH"\n')
+        os.system(f". {os.getenv('HOME')}/.bashrc")
+    print(f"Added {program_path} to path, please rpython estart shell for changes to take effect")
 
 
 class Resource(ABC):
@@ -580,7 +581,7 @@ class ZIPResource(Resource):
 
     def extract(self):
         """Extracts the .zip file."""
-        extract_path = self.location[:-3:]
+        extract_path = self.location[:-4:]
         logging.info(f"Extracting Zip archive {self.location} to {extract_path}")
         with ZipFile(self.location, "r") as archive:
                 archive.extractall(extract_path) # Strip extension and extract to folder
