@@ -160,10 +160,10 @@ def _add_to_path(program_path:str):
             SendMessageTimeoutW = ctypes.windll.user32.SendMessageTimeoutW
             SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, u"Environment", SMTO_ABORTIFHUNG, 5000, ctypes.byref(result),) 
     else: # If system is *nix
-        with open(f"{os.getenv('HOME')}/.bashrc", "a") as bash_file:
-            bash_file.write(f'\nexport PATH="{program_path}:$PATH"\n')
-        os.system(f". {os.getenv('HOME')}/.bashrc")
-    print(f"Added {program_path} to path, please rpython estart shell for changes to take effect")
+        with open(f"{os.getenv('HOME')}/.bashrc", "a") as bash_file:  # Open bashrc file
+            bash_file.write(f'\nexport PATH="{program_path}:$PATH"\n')  # Add program path to Path variable
+        os.system(f". {os.getenv('HOME')}/.bashrc")  # Update bash source
+    print(f"Added {program_path} to path, please restart shell for changes to take effect")
 
 
 class Resource(ABC):
