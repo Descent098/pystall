@@ -53,6 +53,9 @@ cmder :  ZIPResource
 micro :  ZIPResource
     Instance to download and install micro console editor.
     NOTE: Not yet implemented, just downloads and extracts files.
+    
+apache-php : APTResource
+    Instance to download and install a basic apache2 & php7.3 server.
 
 
 Examples
@@ -77,7 +80,7 @@ from .core import *
 
 DEBIAN_BASED = ["ubuntu",
                 "zorin",
-                "lunixmint",
+                "linuxmint",
                 "parrot",
                 ]
 
@@ -150,6 +153,8 @@ else: # Mac OS or linux
 
         micro = TARBALLResource("Micro editor", "https://github.com/zyedidia/micro/releases/download/v1.4.1/micro-1.4.1-linux64.tar.gz")
 
+        apache-php = APTResource("Apache2 PHP Server", ["apache2", "php7.3*"])
+        
     if distro.id() in ARCH_BASED:
         """TODO: Define arch equivalent resources here"""
 
